@@ -1,0 +1,45 @@
+{
+  "name": "hybridwebcache",
+  "version": "0.0.0",
+  "description": "HybridWebCache - A library that combines `localStorage`, `IndexedDB` and memory to provide a high-performance hybrid cache with multi-instance synchronization support.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist/**/*"
+  ],
+  "author": "Heliomar P. Marques",
+  "homepage": "https://github.com/heliomarpm/hybrid-webcache#readme",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/heliomarpm/hybrid-webcache.git"
+  },
+  "license": "MIT",
+  "keywords": [
+    "hybridwebcache",
+    "hybrid-cache",
+    "webcache",
+    "webdb",
+    "webstorage",
+    "key-value",
+    "data",
+    "database",
+    "storage",
+    "localstorage",
+    "indexeddb",
+    "node",
+    "node-cache",
+    "crud"
+  ],
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@types/jest": "^29.5.14",
+    "eslint": "^9.16.0",
+    "gh_deploy": "github:heliomarpm/gh_deploy",
+    "jest": "^29.7.0",
+    "prettier": "^3.4.1",
+    "typescript": "^5.7.2"
+  }
+}

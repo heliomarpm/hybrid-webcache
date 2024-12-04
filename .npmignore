@@ -1,0 +1,9 @@
+.github
+src
+result_test
+tsconfig.json
+cmd
+docs
+jest.config.js
+.editorconfig
+.prettierrc
