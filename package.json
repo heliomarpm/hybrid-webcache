@@ -31,15 +31,28 @@
     "crud"
   ],
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "ts-node src/index.ts",
+    "prebuild": "rimraf dist",
+    "build:dev": "tsc -p tsconfig.json",
+    "build": "tsc -p tsconfig.prod.json",
+    "format": "prettier --write \"src/**/*.ts\" \"tests/**/*.ts\"",
+    "format:check": "prettier --check \"src/**/*.ts\" \"tests/**/*.ts\"",
+    "test": "jest --detectOpenHandles --silent=false",
+    "test:c": "jest --detectOpenHandles --coverage",
+    "pub:release": "node ./node_modules/gh_deploy/index.js"
   },
-  "dependencies": {},
+  "dependencies": {
+    "lodash": "^4.17.21"
+  },
   "devDependencies": {
+    "@trivago/prettier-plugin-sort-imports": "^5.1.0",
     "@types/jest": "^29.5.14",
+    "@types/lodash": "^4.17.13",
     "eslint": "^9.16.0",
     "gh_deploy": "github:heliomarpm/gh_deploy",
     "jest": "^29.7.0",
     "prettier": "^3.4.1",
+    "ts-jest": "^29.2.5",
     "typescript": "^5.7.2"
   }
 }

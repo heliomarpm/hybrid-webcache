@@ -3,7 +3,7 @@
     "strict": true,
     "useDefineForClassFields": true,
     "forceConsistentCasingInFileNames": true,
-    "target": "ES6",
+    "target": "ESNext",
     "module": "CommonJS",
     "outDir": "./dist",
     "rootDir": "./src",

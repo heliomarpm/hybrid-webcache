@@ -1,6 +1,5 @@
 {
-	"singleQuote": false,
-	"singleAttributePerLine": false,
+	"singleQuote": true,
 	"trailingComma": "all",
 	"useTabs": true,
 	"tabWidth": 2,
@@ -12,6 +11,16 @@
 	"embeddedLanguageFormatting": "auto",
 	"htmlWhitespaceSensitivity": "css",
 	"proseWrap": "preserve",
-	"quoteProps": "as-needed",
-	"requirePragma": false
+	"overrides": [
+	  {
+		"files": "tests/**/*.ts",
+		"options": {
+		  "plugins": ["@trivago/prettier-plugin-sort-imports"],
+		  "importOrder": ["^@nestjs/(.*)$","^@core/(.*)$", "^@shared/(.*)$", "^@server/(.*)$", "^@app/(.*)$", "^[./]"],
+		  "importOrderParserPlugins": ["typescript", "classProperties", "decorators-legacy"],
+		  "importOrderSeparation": true,
+		  "importOrderSortSpecifiers": true
+		}
+	  }
+	]
   }
