@@ -1,4 +1,6 @@
 export enum StorageType {
+	Auto,
+	LocalStorage,
 	Memory,
 }
 
@@ -11,6 +13,7 @@ export type KeyPath = string | Array<string>;
 export type TTLType = number | { seconds?: number; minutes?: number; hours?: number; days?: number };
 
 export type OptionsType = {
+	storage: StorageType;
 	ttl: Partial<TTLType>;
 	removeExpired: boolean;
 };

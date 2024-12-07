@@ -6,7 +6,8 @@ import { Utils } from './utils';
 
 const defaultOptions: OptionsType = {
 	ttl: { seconds: 0, minutes: 0, hours: 1, days: 0 },
-	removeExpired: true
+	removeExpired: true,
+	storage: StorageType.Auto,
 };
 
 export class HybridWebCache {
@@ -18,11 +19,20 @@ export class HybridWebCache {
 		this.baseName = baseName;
 		this.options = { ...defaultOptions, ...options };
 
-		this.storageEngine = this.determineStorageEngine();
+		this.storageEngine = this.determineStorageEngine(this.options.storage);
+		this.options.storage = this.storageEngine.type;
 	}
 
-	private determineStorageEngine(): StorageBase {
-        return StorageFactory.createStorage(StorageType.Memory);
+	private determineStorageEngine(storage: StorageType): StorageBase {
+		if (storage === StorageType.Auto) {
+			if (Utils.isLocalStorageAvailable()) {
+				return StorageFactory.createStorage(StorageType.LocalStorage, this.baseName);
+			} else {
+				return StorageFactory.createStorage(StorageType.Memory, this.baseName);
+			}
+		}
+
+		return StorageFactory.createStorage(storage, this.baseName);
 	}
 
 	private createKey(keyPath: KeyPath): string {
