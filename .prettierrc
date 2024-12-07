@@ -1,6 +1,7 @@
 {
+	"parser": "typescript",
 	"singleQuote": true,
-	"trailingComma": "all",
+	"trailingComma": "none",
 	"useTabs": true,
 	"tabWidth": 2,
 	"semi": true,
@@ -11,6 +12,7 @@
 	"embeddedLanguageFormatting": "auto",
 	"htmlWhitespaceSensitivity": "css",
 	"proseWrap": "preserve",
+	"experimentalTernaries": true,
 	"overrides": [
 	  {
 		"files": "tests/**/*.ts",
