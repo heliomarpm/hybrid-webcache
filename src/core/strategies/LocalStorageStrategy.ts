@@ -19,15 +19,18 @@ export class LocalStorageStrategy implements StorageBase {
 
 		if (key === null) {
 			// Todo o armazenamento foi limpo
+			console.log('LocalStorage: Todo o armazenamento foi limpo');
 			this.memoryCache.clear();
 			return;
 		}
 
 		if (newValue === null) {
 			// Item foi removido
+			confirm(`LocalStorage: Item ${key} foi removido`);
 			this.memoryCache.delete(key);
 		} else {
 			// Item foi adicionado ou atualizado
+			console.log(`LocalStorage: Item  ${key} foi adicionado ou atualizado`);
 			this.memoryCache.set(key, JSON.parse(newValue));
 		}
 	}

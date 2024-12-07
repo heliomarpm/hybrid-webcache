@@ -1,7 +1,8 @@
 export enum StorageType {
 	Auto,
 	LocalStorage,
-	Memory,
+	IndexedDB,
+	Memory
 }
 
 export type ValueTypes = null | string | number | boolean | object | DictionaryType | ValueTypes[];
@@ -18,13 +19,13 @@ export type OptionsType = {
 	removeExpired: boolean;
 };
 
-export type SetOptionsType = {
-	ttl: Partial<TTLType>;
-};
+// export type SetOptionsType = {
+// 	ttl: Partial<TTLType>;
+// };
 
-export type GetOptionsType = {
-	removeExpired: boolean;
-};
+// export type GetOptionsType = {
+// 	removeExpired: boolean;
+// };
 
 export interface DataSetType<T> {
 	value: T;

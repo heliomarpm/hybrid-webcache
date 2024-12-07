@@ -1,13 +1,13 @@
 import { get as _get, set as _set, has as _has, unset as _unset } from 'lodash';
 
-import StorageBase, { DataGetType, DataSetType, GetOptionsType, KeyPath, KeyValues, OptionsType, SetOptionsType, StorageType, ValueTypes } from './core/models';
+import StorageBase, { DataGetType, DataSetType, KeyPath, KeyValues, OptionsType, StorageType, TTLType, ValueTypes } from './core/models';
 import { StorageFactory } from './core/StorageFactory';
 import { Utils } from './utils';
 
 const defaultOptions: OptionsType = {
 	ttl: { seconds: 0, minutes: 0, hours: 1, days: 0 },
 	removeExpired: true,
-	storage: StorageType.Auto,
+	storage: StorageType.Auto
 };
 
 export class HybridWebCache {
@@ -27,6 +27,8 @@ export class HybridWebCache {
 		if (storage === StorageType.Auto) {
 			if (Utils.isLocalStorageAvailable()) {
 				return StorageFactory.createStorage(StorageType.LocalStorage, this.baseName);
+			} else if (Utils.isIndexedDBAvailable()) {
+				return StorageFactory.createStorage(StorageType.IndexedDB, this.baseName);
 			} else {
 				return StorageFactory.createStorage(StorageType.Memory, this.baseName);
 			}
@@ -40,9 +42,8 @@ export class HybridWebCache {
 		return Utils.getKey(keyPath);
 	}
 
-	private prepareDataSet<T extends ValueTypes>(value: T, options?: Partial<SetOptionsType>) {
-		const opts = { ...this.options, ...options };
-		const ttlMs = Utils.convertTTLToMilliseconds(opts.ttl);
+	private prepareDataSet<T extends ValueTypes>(value: T, ttl: Partial<TTLType> = this.options.ttl) {
+		const ttlMs = Utils.convertTTLToMilliseconds(ttl);
 		const expiresAt = ttlMs > 0 ? Date.now() + ttlMs : 0;
 
 		const data: DataSetType<T> = { value, expiresAt };
@@ -50,7 +51,7 @@ export class HybridWebCache {
 		return { data };
 	}
 
-	async resetWith<T extends ValueTypes>(keyValues: KeyValues<T>, options?: Partial<SetOptionsType>): Promise<void> {
+	async resetWith<T extends ValueTypes>(keyValues: KeyValues<T>, ttl: Partial<TTLType> = this.options.ttl): Promise<void> {
 		await this.storageEngine.unset();
 
 		return new Promise<void>((resolve, _reject) => {
@@ -58,7 +59,7 @@ export class HybridWebCache {
 				let obj: object = {};
 
 				_set(obj, key, value);
-				const dataSet = this.prepareDataSet<T>(obj as T, this.options);
+				const dataSet = this.prepareDataSet<T>(obj as T, ttl);
 
 				this.storageEngine.set(this.createKey(key), dataSet.data);
 			});
@@ -66,45 +67,43 @@ export class HybridWebCache {
 		});
 	}
 
-	resetWithSync<T extends ValueTypes>(keyValues: KeyValues<T>, options?: Partial<SetOptionsType>): void {
+	resetWithSync<T extends ValueTypes>(keyValues: KeyValues<T>, ttl: Partial<TTLType> = this.options.ttl): void {
 		this.storageEngine.unsetSync();
 
 		Object.entries(keyValues).forEach(([key, value]) => {
 			let obj: object = {};
 
 			_set(obj, key, value);
-			const dataSet = this.prepareDataSet<T>(obj as T, this.options);
+			const dataSet = this.prepareDataSet<T>(obj as T, ttl);
 
 			this.storageEngine.set(this.createKey(key), dataSet.data);
 		});
 	}
 
-	async set<T extends ValueTypes>(keyPath: KeyPath, value: T, options?: Partial<SetOptionsType>): Promise<void> {
+	async set<T extends ValueTypes>(keyPath: KeyPath, value: T, ttl: Partial<TTLType> = this.options.ttl): Promise<void> {
 		const key = this.createKey(keyPath);
 		const cache = await this.storageEngine.get(key);
 		const obj = cache?.value || {};
 
 		_set(obj as object, keyPath, value);
-		const dataSet = this.prepareDataSet(obj, options);
+		const dataSet = this.prepareDataSet(obj, ttl);
 
 		return this.storageEngine.set(key, dataSet.data);
 	}
 
-	setSync<T extends ValueTypes>(keyPath: KeyPath, value: T, options?: Partial<SetOptionsType>): void {
+	setSync<T extends ValueTypes>(keyPath: KeyPath, value: T, ttl: Partial<TTLType> = this.options.ttl): void {
 		const key = this.createKey(keyPath);
 		const cache = this.storageEngine.getSync(key);
 		const obj = cache?.value || {};
 
 		_set(obj as object, keyPath, value);
 
-		const dataSet = this.prepareDataSet(obj, options);
+		const dataSet = this.prepareDataSet(obj, ttl);
 
 		return this.storageEngine.setSync(key, dataSet.data);
 	}
 
-	async get<T extends ValueTypes>(keyPath: KeyPath, options?: Partial<GetOptionsType>): Promise<DataGetType<T> | undefined> {
-		// const storage = options?.storage || this.options.storage;
-		const removeExpired = options?.removeExpired ?? this.options.removeExpired;
+	async get<T extends ValueTypes>(keyPath: KeyPath, removeExpired: boolean = this.options.removeExpired): Promise<DataGetType<T> | undefined> {
 		const key = this.createKey(keyPath);
 		const cache = await this.storageEngine.get(key);
 
@@ -124,16 +123,14 @@ export class HybridWebCache {
 			return {
 				value,
 				expiresAt: cache.expiresAt,
-				isExpired: cache.isExpired,
+				isExpired: cache.isExpired
 			} as DataGetType<T>;
 		}
 
 		return undefined;
 	}
 
-	getSync<T extends ValueTypes>(keyPath: KeyPath, options?: Partial<GetOptionsType>): DataGetType<T> | undefined {
-		// const storage = options?.storage || this.options.storage;
-		const removeExpired = options?.removeExpired ?? this.options.removeExpired;
+	getSync<T extends ValueTypes>(keyPath: KeyPath, removeExpired: boolean = this.options.removeExpired): DataGetType<T> | undefined {
 		const key = this.createKey(keyPath);
 		const cache = this.storageEngine.getSync(key);
 
@@ -153,16 +150,14 @@ export class HybridWebCache {
 			return {
 				value,
 				expiresAt: cache.expiresAt,
-				isExpired: cache.isExpired,
+				isExpired: cache.isExpired
 			} as DataGetType<T>;
 		}
 
 		return;
 	}
 
-	async getAll(options?: Partial<GetOptionsType>): Promise<Map<string, DataGetType<unknown>> | null> {
-		const removeExpired = options?.removeExpired ?? this.options.removeExpired;
-
+	async getAll(removeExpired: boolean = this.options.removeExpired): Promise<Map<string, DataGetType<unknown>> | null> {
 		const allItems = await this.storageEngine.getAll();
 		if (!allItems) {
 			return null;
@@ -185,16 +180,14 @@ export class HybridWebCache {
 			result.set(iKey, {
 				value: iValue,
 				expiresAt: cache.expiresAt,
-				isExpired: cache.isExpired,
+				isExpired: cache.isExpired
 			});
 		}
 
 		return Promise.resolve(result);
 	}
 
-	getAllSync(options?: Partial<GetOptionsType>): Map<string, DataGetType<unknown>> | null {
-		const removeExpired = options?.removeExpired ?? this.options.removeExpired;
-
+	getAllSync(removeExpired: boolean = this.options.removeExpired): Map<string, DataGetType<unknown>> | null {
 		const allItems = this.storageEngine.getAllSync();
 		if (!allItems) {
 			return null;
@@ -217,7 +210,7 @@ export class HybridWebCache {
 			result.set(iKey, {
 				value: iValue,
 				expiresAt: cache.expiresAt,
-				isExpired: cache.isExpired,
+				isExpired: cache.isExpired
 			});
 		}
 
@@ -280,9 +273,9 @@ export class HybridWebCache {
 		return this.storageEngine.unsetSync();
 	}
 
-	async getJson(options?: Partial<GetOptionsType>): Promise<Record<string, unknown> | null> {
+	async getJson(removeExpired: boolean = this.options.removeExpired): Promise<Record<string, unknown> | null> {
 		const allValues: Record<string, unknown> = {};
-		const allItems = await this.getAll(options);
+		const allItems = await this.getAll(removeExpired);
 
 		if (!allItems) {
 			return null;
@@ -296,9 +289,9 @@ export class HybridWebCache {
 
 		return allValues;
 	}
-	getJsonSync(options?: Partial<GetOptionsType>): Record<string, unknown> | null {
+	getJsonSync(removeExpired: boolean = this.options.removeExpired): Record<string, unknown> | null {
 		const allValues: Record<string, unknown> = {};
-		const allItems = this.getAllSync(options);
+		const allItems = this.getAllSync(removeExpired);
 
 		if (!allItems) {
 			return null;
@@ -328,8 +321,8 @@ export class HybridWebCache {
 			size,
 			options: {
 				...this.options,
-				ttl: Utils.convertTTLToMilliseconds(this.options.ttl),
-			},
+				ttl: Utils.convertTTLToMilliseconds(this.options.ttl)
+			}
 		};
 	}
 
