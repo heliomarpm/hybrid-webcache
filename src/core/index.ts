@@ -1,1 +1,2 @@
-export * from './strategies/MemoryStrategy';
+export { StorageBase, StorageType } from './models';
+export * from './HybridWebCache';

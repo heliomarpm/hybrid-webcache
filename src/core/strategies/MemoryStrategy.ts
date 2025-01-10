@@ -1,4 +1,4 @@
-import StorageBase, { DataGetType, DataSetType, StorageType, ValueTypes } from '../models';
+import { StorageBase, DataGetType, DataSetType, StorageType, ValueTypes } from '../models';
 
 export class MemoryStrategy implements StorageBase {
 	private storage: Map<string, any> = new Map();

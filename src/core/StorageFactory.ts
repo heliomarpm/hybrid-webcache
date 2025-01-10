@@ -1,5 +1,5 @@
-import { Utils } from '../utils';
-import StorageBase, { StorageType } from './models';
+import { Utils } from './utils';
+import { StorageBase, StorageType } from './models';
 import { IndexedDBStrategy, LocalStorageStrategy, MemoryStrategy } from './strategies';
 
 export class StorageFactory {

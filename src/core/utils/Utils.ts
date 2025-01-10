@@ -1,4 +1,4 @@
-import { KeyPath, TTLType } from '../core/models';
+import { KeyPath, TTLType } from '../models';
 
 export class Utils {
 	static getKey(keyPath: KeyPath): string {
@@ -33,7 +33,7 @@ export class Utils {
 	}
 
 	static isExpired(expiresAt: number): boolean {
-		return expiresAt > 0 ? Date.now() > expiresAt : false;
+		return expiresAt > 0 ? expiresAt <= Date.now() : false;
 	}
 
 	static isLocalStorageAvailable(): boolean {
@@ -58,6 +58,7 @@ export class Utils {
 		const BYTES_PER_KB = 1024;
 		const UNITS = ['b', 'kb', 'mb', 'gb'];
 
+		if (bytes <= 0) return '0b';
 		if (bytes < BYTES_PER_KB) return `${bytes}b`;
 
 		const i = Math.floor(Math.log(bytes) / Math.log(1024));

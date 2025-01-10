@@ -1,7 +1,7 @@
 {
-  "name": "hybridwebcache",
-  "version": "0.0.0",
-  "description": "HybridWebCache - A library that combines `localStorage`, `IndexedDB` and memory to provide a high-performance hybrid cache with multi-instance synchronization support.",
+  "name": "hybrid-webcache",
+  "version": "0.0.1",
+  "description": "Hybrid WebCache - A library that combines `localStorage`, `IndexedDB` and memory to provide a high-performance hybrid cache with multi-instance synchronization support.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
@@ -15,8 +15,8 @@
   },
   "license": "MIT",
   "keywords": [
-    "hybridwebcache",
-    "hybrid-cache",
+    "hybrid",
+    "cache",
     "webcache",
     "webdb",
     "webstorage",
@@ -35,7 +35,7 @@
     "prebuild": "rimraf dist",
     "build:dev": "tsc -p tsconfig.json",
     "build": "tsc -p tsconfig.prod.json",
-    "format": "prettier --write \"src/**/*.ts\" \"tests/**/*.ts\"",
+    "format": "prettier --write \"src/**/*.ts\" ",
     "format:check": "prettier --check \"src/**/*.ts\" \"tests/**/*.ts\"",
     "test": "jest --detectOpenHandles --silent=false",
     "test:c": "jest --detectOpenHandles --coverage",
@@ -45,15 +45,16 @@
     "lodash": "^4.17.21"
   },
   "devDependencies": {
-    "@trivago/prettier-plugin-sort-imports": "^5.1.0",
+    "@trivago/prettier-plugin-sort-imports": "^5.2.0",
     "@types/jest": "^29.5.14",
     "@types/lodash": "^4.17.13",
-    "eslint": "^9.16.0",
+    "eslint": "^9.17.0",
     "fake-indexeddb": "^6.0.0",
     "gh_deploy": "github:heliomarpm/gh_deploy",
     "jest": "^29.7.0",
     "jest-environment-jsdom": "^29.7.0",
-    "prettier": "^3.4.1",
+    "prettier": "^3.4.2",
+    "rimraf": "^6.0.1",
     "ts-jest": "^29.2.5",
     "typescript": "^5.7.2"
   }

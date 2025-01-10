@@ -1,38 +1,10 @@
-import StorageBase, { DataGetType, DataSetType, StorageType, ValueTypes } from '../models';
+import { StorageBase, DataGetType, DataSetType, StorageType, ValueTypes } from '../models';
 
 export class LocalStorageStrategy implements StorageBase {
-	private memoryCache: Map<string, any> = new Map();
 	private prefixKey: string;
 
 	constructor(prefixKey: string = 'HybridWebCache') {
 		this.prefixKey = `${prefixKey.trim()}::`;
-		this.getAllSync(); // load memoryCache
-
-		// Sincronizar com outras janelas
-		window.addEventListener('storage', this.handleStorageEvent.bind(this));
-	}
-
-	private handleStorageEvent(event: StorageEvent): void {
-		if (event.storageArea !== localStorage) return;
-
-		const { key, newValue } = event;
-
-		if (key === null) {
-			// Todo o armazenamento foi limpo
-			console.log('LocalStorage: Todo o armazenamento foi limpo');
-			this.memoryCache.clear();
-			return;
-		}
-
-		if (newValue === null) {
-			// Item foi removido
-			confirm(`LocalStorage: Item ${key} foi removido`);
-			this.memoryCache.delete(key);
-		} else {
-			// Item foi adicionado ou atualizado
-			console.log(`LocalStorage: Item  ${key} foi adicionado ou atualizado`);
-			this.memoryCache.set(key, JSON.parse(newValue));
-		}
 	}
 
 	private formattedKey(key: string): string {
@@ -44,7 +16,6 @@ export class LocalStorageStrategy implements StorageBase {
 	}
 
 	setSync<T extends ValueTypes>(key: string, data: DataSetType<T>): void {
-		this.memoryCache.set(this.formattedKey(key), data);
 		return localStorage.setItem(this.formattedKey(key), JSON.stringify(data));
 	}
 
@@ -53,8 +24,7 @@ export class LocalStorageStrategy implements StorageBase {
 	}
 
 	getSync<T extends ValueTypes>(key: string): DataGetType<T> | undefined {
-		// return this.hasSync(key) ? JSON.parse(localStorage.getItem(this.formattedKey(key))!) : undefined;
-		return this.memoryCache.get(this.formattedKey(key));
+		return this.hasSync(key) ? JSON.parse(localStorage.getItem(this.formattedKey(key))!) : undefined;
 	}
 
 	getAll(): Promise<Map<string, DataGetType<unknown>> | null> {
@@ -63,13 +33,11 @@ export class LocalStorageStrategy implements StorageBase {
 
 	getAllSync(): Map<string, DataGetType<unknown>> | null {
 		const data = new Map();
-		this.memoryCache.clear();
 
 		for (let i = 0; i < localStorage.length; i++) {
 			const key = localStorage.key(i)!;
 			if (key.startsWith(this.prefixKey)) {
 				data.set(key.replace(this.prefixKey, ''), JSON.parse(localStorage.getItem(key)!));
-				this.memoryCache.set(key, JSON.parse(localStorage.getItem(key)!));
 			}
 		}
 
@@ -81,8 +49,7 @@ export class LocalStorageStrategy implements StorageBase {
 	}
 
 	hasSync(key: string): boolean {
-		// return !!localStorage.getItem(this.formattedKey(key));
-		return this.memoryCache.has(this.formattedKey(key));
+		return !!localStorage.getItem(this.formattedKey(key));
 	}
 
 	unset(): Promise<boolean>;
@@ -97,6 +64,7 @@ export class LocalStorageStrategy implements StorageBase {
 		let result = false;
 
 		if (!key) {
+			result = localStorage.length > 0;
 			// const keys = [...this.memoryCache.keys()];
 			// keys.forEach(key => {
 			// 	localStorage.removeItem(key);
@@ -104,33 +72,32 @@ export class LocalStorageStrategy implements StorageBase {
 			// 	result = true;
 			// });
 
-			let index = 0;
-			do {
-				const key = localStorage.key(index);
-				if (key && key.startsWith(this.prefixKey)) {
-					localStorage.removeItem(key);
-					// this.memoryCache.delete(key);
-					result = true;
-				} else {
-					index++;
-				}
-			} while (index < localStorage.length);
-			this.memoryCache.clear();
+			// let index = 0;
+			// do {
+			// 	const key = localStorage.key(index);
+			// 	if (key && key.startsWith(this.prefixKey)) {
+			// 		localStorage.removeItem(key);
+			// 		// this.memoryCache.delete(key);
+			// 		result = true;
+			// 	} else {
+			// 		index++;
+			// 	}
+			// } while (index < localStorage.length);
+			// this.memoryCache.clear();
+			localStorage.clear();
 			return result;
 		} else {
 			result = this.hasSync(key);
 			if (result) {
 				const fKey = this.formattedKey(key);
 				localStorage.removeItem(fKey);
-				this.memoryCache.delete(fKey);
 			}
 			return result;
 		}
 	}
 
 	get length(): number {
-		// return localStorage.length;
-		return this.memoryCache.size;
+		return localStorage.length;
 	}
 
 	get bytes(): number {

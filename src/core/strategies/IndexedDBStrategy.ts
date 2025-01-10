@@ -1,4 +1,4 @@
-import StorageBase, { DataGetType, DataSetType, StorageType, ValueTypes } from '../models';
+import { StorageBase, DataGetType, DataSetType, StorageType, ValueTypes } from '../models';
 
 export class IndexedDBStrategy implements StorageBase {
 	private db: IDBDatabase | null = null;
@@ -117,7 +117,7 @@ export class IndexedDBStrategy implements StorageBase {
 		this.memoryCache.set(key, data);
 		this.channel.postMessage({ action: 'sync', key, value: data });
 
-		await this.execute('readwrite', store => store.put(data, key));
+		await this.execute('readwrite', store => store.put({ id: key, ...data }));
 
 		this.logPerformance('set', start);
 	}
@@ -126,7 +126,7 @@ export class IndexedDBStrategy implements StorageBase {
 		this.memoryCache.set(key, data);
 		this.channel.postMessage({ action: 'sync', key, value: data });
 
-		this.executeQueue('readwrite', store => store.put(data, key));
+		this.executeQueue('readwrite', store => store.put({ id: key, ...data }));
 	}
 
 	async get<T extends ValueTypes>(key: string): Promise<DataGetType<T> | undefined> {

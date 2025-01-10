@@ -1,7 +1,7 @@
-import { get as _get, set as _set, has as _has, unset as _unset } from 'lodash';
+import { get as _get, set as _set, unset as _unset, has as _has } from 'lodash';
 
-import StorageBase, { DataGetType, DataSetType, KeyPath, KeyValues, OptionsType, StorageType, TTLType, ValueTypes } from './core/models';
-import { StorageFactory } from './core/StorageFactory';
+import { StorageBase, DataGetType, DataSetType, KeyPath, KeyValues, OptionsType, StorageType, TTLType, ValueTypes } from './models';
+import { StorageFactory } from './StorageFactory';
 import { Utils } from './utils';
 
 const defaultOptions: OptionsType = {
@@ -45,7 +45,6 @@ export class HybridWebCache {
 	private prepareDataSet<T extends ValueTypes>(value: T, ttl: Partial<TTLType> = this.options.ttl) {
 		const ttlMs = Utils.convertTTLToMilliseconds(ttl);
 		const expiresAt = ttlMs > 0 ? Date.now() + ttlMs : 0;
-
 		const data: DataSetType<T> = { value, expiresAt };
 
 		return { data };
@@ -82,8 +81,8 @@ export class HybridWebCache {
 
 	async set<T extends ValueTypes>(keyPath: KeyPath, value: T, ttl: Partial<TTLType> = this.options.ttl): Promise<void> {
 		const key = this.createKey(keyPath);
-		const cache = await this.storageEngine.get(key);
-		const obj = cache?.value || {};
+		const data = await this.storageEngine.get(key);
+		const obj = data?.value || {};
 
 		_set(obj as object, keyPath, value);
 		const dataSet = this.prepareDataSet(obj, ttl);
@@ -93,8 +92,8 @@ export class HybridWebCache {
 
 	setSync<T extends ValueTypes>(keyPath: KeyPath, value: T, ttl: Partial<TTLType> = this.options.ttl): void {
 		const key = this.createKey(keyPath);
-		const cache = this.storageEngine.getSync(key);
-		const obj = cache?.value || {};
+		const data = this.storageEngine.getSync(key);
+		const obj = data?.value || {};
 
 		_set(obj as object, keyPath, value);
 
@@ -105,52 +104,52 @@ export class HybridWebCache {
 
 	async get<T extends ValueTypes>(keyPath: KeyPath, removeExpired: boolean = this.options.removeExpired): Promise<DataGetType<T> | undefined> {
 		const key = this.createKey(keyPath);
-		const cache = await this.storageEngine.get(key);
+		const data = await this.storageEngine.get(key);
 
-		if (cache) {
-			let value = _get(cache.value, keyPath);
-
-			if (value === undefined) {
-				return undefined;
-			}
-
-			cache.isExpired = Utils.isExpired(cache.expiresAt);
-			if (removeExpired && cache.isExpired) {
-				await this.unset(keyPath);
-				value = null;
-			}
-
-			return {
-				value,
-				expiresAt: cache.expiresAt,
-				isExpired: cache.isExpired
-			} as DataGetType<T>;
-		}
-
-		return undefined;
-	}
-
-	getSync<T extends ValueTypes>(keyPath: KeyPath, removeExpired: boolean = this.options.removeExpired): DataGetType<T> | undefined {
-		const key = this.createKey(keyPath);
-		const cache = this.storageEngine.getSync(key);
-
-		if (cache) {
-			let value = _get(cache.value, keyPath);
+		if (data) {
+			const value = _get(data.value, keyPath);
 
 			if (value === undefined) {
 				return;
 			}
 
-			cache.isExpired = Utils.isExpired(cache.expiresAt);
-			if (removeExpired && cache.isExpired) {
-				this.unsetSync(keyPath);
-				value = null;
+			data.isExpired = Utils.isExpired(data.expiresAt);
+			if (removeExpired && data.isExpired) {
+				await this.unset(keyPath);
+				return;
 			}
 
 			return {
 				value,
-				expiresAt: cache.expiresAt,
-				isExpired: cache.isExpired
+				expiresAt: data.expiresAt,
+				isExpired: data.isExpired
+			} as DataGetType<T>;
+		}
+
+		return;
+	}
+
+	getSync<T extends ValueTypes>(keyPath: KeyPath, removeExpired: boolean = this.options.removeExpired): DataGetType<T> | undefined {
+		const key = this.createKey(keyPath);
+		const data = this.storageEngine.getSync(key);
+
+		if (data) {
+			const value = _get(data.value, keyPath);
+
+			if (value === undefined) {
+				return;
+			}
+
+			data.isExpired = Utils.isExpired(data.expiresAt);
+			if (removeExpired && data.isExpired) {
+				this.unsetSync(keyPath);
+				return;
+			}
+
+			return {
+				value,
+				expiresAt: data.expiresAt,
+				isExpired: data.isExpired
 			} as DataGetType<T>;
 		}
 
@@ -165,26 +164,26 @@ export class HybridWebCache {
 
 		const result: Map<string, DataGetType<unknown>> = new Map();
 
-		for (const [key, cache] of allItems) {
-			const [iKey, iValue] = Object.entries(cache.value!)[0];
+		for (const [key, data] of allItems) {
+			const [iKey, iValue] = Object.entries(data.value!)[0];
 
 			// Check if the item is expired
-			cache.isExpired = Utils.isExpired(cache.expiresAt);
+			data.isExpired = Utils.isExpired(data.expiresAt);
 
 			// If `removeExpired` is true and the item is expired, remove it and skip adding to result
-			if (removeExpired && cache.isExpired) {
+			if (removeExpired && data.isExpired) {
 				await this.unset(iKey);
 				continue;
 			}
 
 			result.set(iKey, {
 				value: iValue,
-				expiresAt: cache.expiresAt,
-				isExpired: cache.isExpired
+				expiresAt: data.expiresAt,
+				isExpired: data.isExpired
 			});
 		}
 
-		return Promise.resolve(result);
+		return Promise.resolve(result.size > 0 ? result : null);
 	}
 
 	getAllSync(removeExpired: boolean = this.options.removeExpired): Map<string, DataGetType<unknown>> | null {
@@ -195,35 +194,49 @@ export class HybridWebCache {
 
 		const result: Map<string, DataGetType<unknown>> = new Map();
 
-		for (const [key, cache] of allItems) {
-			const [iKey, iValue] = Object.entries(cache.value!)[0];
+		for (const [key, data] of allItems) {
+			const [iKey, iValue] = Object.entries(data.value!)[0];
 
 			// Check if the item is expired
-			cache.isExpired = Utils.isExpired(cache.expiresAt);
+			data.isExpired = Utils.isExpired(data.expiresAt);
 
 			// If `removeExpired` is true and the item is expired, remove it and skip adding to result
-			if (removeExpired && cache.isExpired) {
+			if (removeExpired && data.isExpired) {
 				this.unsetSync(iKey);
 				continue;
 			}
 
 			result.set(iKey, {
 				value: iValue,
-				expiresAt: cache.expiresAt,
-				isExpired: cache.isExpired
+				expiresAt: data.expiresAt,
+				isExpired: data.isExpired
 			});
 		}
 
-		return result;
+		return result.size > 0 ? result : null;
 	}
 
 	async has(keyPath: KeyPath): Promise<boolean> {
+		const key = this.createKey(keyPath);
+
+		if (key === keyPath.toString()) {
+			return this.storageEngine.has(key);
+		}
+
 		const data = await this.get(keyPath);
 		return data !== undefined && data?.value !== null;
 	}
 	hasSync(keyPath: KeyPath): boolean {
+		const key = this.createKey(keyPath);
+
+		if (key === keyPath.toString()) {
+			return this.storageEngine.hasSync(key);
+		}
+
 		const data = this.getSync(keyPath);
 		return data !== undefined && data?.value !== null;
+		// return data !== undefined && data?.value !== null;
+		// return _has(data?.value, keyPath);
 	}
 
 	unset(): Promise<boolean>;
@@ -231,13 +244,13 @@ export class HybridWebCache {
 	async unset(keyPath?: KeyPath): Promise<boolean> {
 		if (keyPath) {
 			const key = this.createKey(keyPath);
-			const cache = await this.storageEngine.get(key);
+			const data = await this.storageEngine.get(key);
 
-			if (cache) {
-				if (_unset(cache.value, keyPath)) {
-					if (JSON.stringify(cache.value || '') !== '{}') {
+			if (data) {
+				if (_unset(data.value, keyPath)) {
+					if (JSON.stringify(data.value || '') !== '{}') {
 						//update
-						return this.storageEngine.set(key, cache).then(() => true);
+						return this.storageEngine.set(key, data).then(() => true);
 					}
 				}
 
@@ -254,13 +267,13 @@ export class HybridWebCache {
 	unsetSync(keyPath?: KeyPath): boolean {
 		if (keyPath) {
 			const key = this.createKey(keyPath);
-			const cache = this.storageEngine.getSync(key);
+			const data = this.storageEngine.getSync(key);
 
-			if (cache) {
-				if (_unset(cache.value, keyPath)) {
-					if (JSON.stringify(cache.value || '') !== '{}') {
+			if (data) {
+				if (_unset(data.value, keyPath)) {
+					if (JSON.stringify(data.value || '') !== '{}') {
 						//update
-						this.storageEngine.setSync(key, cache);
+						this.storageEngine.setSync(key, data);
 						return true;
 					}
 				}
@@ -273,8 +286,8 @@ export class HybridWebCache {
 		return this.storageEngine.unsetSync();
 	}
 
-	async getJson(removeExpired: boolean = this.options.removeExpired): Promise<Record<string, unknown> | null> {
-		const allValues: Record<string, unknown> = {};
+	async getJson(removeExpired: boolean = this.options.removeExpired): Promise<Record<string, any> | null> {
+		const allValues: Record<string, any> = {};
 		const allItems = await this.getAll(removeExpired);
 
 		if (!allItems) {
@@ -289,8 +302,8 @@ export class HybridWebCache {
 
 		return allValues;
 	}
-	getJsonSync(removeExpired: boolean = this.options.removeExpired): Record<string, unknown> | null {
-		const allValues: Record<string, unknown> = {};
+	getJsonSync(removeExpired: boolean = this.options.removeExpired): Record<string, any> | null {
+		const allValues: Record<string, any> = {};
 		const allItems = this.getAllSync(removeExpired);
 
 		if (!allItems) {

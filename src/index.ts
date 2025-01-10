@@ -1,2 +1,2 @@
-export { StorageType } from './core/models/types';
-export * from './HybridWebCache';
+import { HybridWebCache, StorageType } from './core';
+export { HybridWebCache, StorageType };
