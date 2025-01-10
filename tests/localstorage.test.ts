@@ -64,8 +64,40 @@ describe("LocalStorage Strategy", () => {
 		expect(hwc.info.size).toBeDefined();
 	});
 
+	it('should initialize with default options when no options provided', () => {
+		const cache = new HybridWebCache();
+
+		expect(cache.info.options).toEqual({
+			ttl: 3600000,
+			removeExpired: true,
+			storage: StorageType.LocalStorage
+		});
+
+		expect(cache.storageType).toBe(StorageType.LocalStorage);
+	});
+
+
+	it('should remove expired item when removeExpired is true', async () => {
+		const cache = new HybridWebCache('test', {
+			ttl: { seconds: 1 },
+			removeExpired: true
+		});
+
+		await cache.set('testKey', 'testValue');
+		expect((await cache.get('testKey'))!.value).toBe("testValue");
+
+		await new Promise(resolve => setTimeout(resolve, 1100));
+
+		const result = await cache.get('testKey', false);
+
+		expect(result?.isExpired).toBeTruthy();
+		await cache.get('testKey', true);
+		expect(await cache.has('testKey')).toBeFalsy();
+	});
+
 	it("test set/get property string type", async () => {
 		await hwc.set("str", "strValue");
+		expect((await hwc.has("str"))).toBeTruthy();
 		expect((await hwc.get("str"))!.value).toBe("strValue");
 	});
 	it("test setSync/getSync property string type", () => {
@@ -145,13 +177,13 @@ describe("LocalStorage Strategy", () => {
 
 	it("test get remove expired (NestedProperties)", async () => {
 		//runner after 1 second
-		expect((await hwc.get("obj.sobreNome", true))!.value).toBeNull();
-		expect(await hwc.get("obj.sobreNome")).toBeUndefined();
+		expect((await hwc.get("obj.sobreNome", false))!.value).toBe("Marques");	
+		expect(await hwc.get("obj.sobreNome", true)).toBeUndefined();
 	}, 1000);
 	it("test getSync remove expired (NestedProperties)", () => {
 		//runner after 1 second
-		expect(hwc.getSync("objSync.sobreNome", true)!.value).toBeNull();
-		expect(hwc.getSync("objSync.sobreNome")).toBeUndefined();
+		expect(hwc.getSync("objSync.sobreNome", false)!.value).toBe("Marques");
+		expect(hwc.getSync("objSync.sobreNome", true)).toBeUndefined();
 	}, 1000);
 
 	it("test get all properties after removing key", async () => {
@@ -179,9 +211,10 @@ describe("LocalStorage Strategy", () => {
 	it(
 		"test get with remove expired",
 		async () => {
+			// not remove expired cache
+			expect(await hwc.get("user", false)).toBeDefined();
 			// remove expired cache
-			expect((await hwc.get("user", true))!.value).toBeNull();
-			expect(await hwc.get("user")).toBeUndefined();
+			expect(await hwc.get("user", true)).toBeUndefined();
 		},
 		1 * 1000,
 	); //1s
@@ -195,9 +228,10 @@ describe("LocalStorage Strategy", () => {
 	it(
 		"test getSync with remove expired",
 		() => {
+			// not remove expired cache
+			expect(hwc.getSync("user", false)).toBeDefined();
 			// remove expired cache
-			expect(hwc.getSync("user", true)!.value).toBeNull();
-			expect(hwc.getSync("user")).toBeUndefined();
+			expect(hwc.getSync("user", true)).toBeUndefined();
 		},
 		1 * 1000,
 	); //1s
