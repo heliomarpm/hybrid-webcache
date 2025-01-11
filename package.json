@@ -1,6 +1,6 @@
 {
   "name": "hybrid-webcache",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Hybrid WebCache - A library that combines `localStorage`, `IndexedDB` and memory to provide a high-performance hybrid cache with multi-instance synchronization support.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

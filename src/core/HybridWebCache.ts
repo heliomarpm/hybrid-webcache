@@ -1,4 +1,4 @@
-import { get as _get, set as _set, unset as _unset, has as _has } from 'lodash';
+import { get as _get, set as _set, unset as _unset } from 'lodash';
 
 import { StorageBase, DataGetType, DataSetType, KeyPath, KeyValues, OptionsType, StorageType, TTLType, ValueTypes } from './models';
 import { StorageFactory } from './StorageFactory';
@@ -55,7 +55,7 @@ export class HybridWebCache {
 
 		return new Promise<void>((resolve, _reject) => {
 			Object.entries(keyValues).forEach(([key, value]) => {
-				let obj: object = {};
+				const obj: object = {};
 
 				_set(obj, key, value);
 				const dataSet = this.prepareDataSet<T>(obj as T, ttl);
@@ -70,7 +70,7 @@ export class HybridWebCache {
 		this.storageEngine.unsetSync();
 
 		Object.entries(keyValues).forEach(([key, value]) => {
-			let obj: object = {};
+			const obj: object = {};
 
 			_set(obj, key, value);
 			const dataSet = this.prepareDataSet<T>(obj as T, ttl);
@@ -164,7 +164,7 @@ export class HybridWebCache {
 
 		const result: Map<string, DataGetType<unknown>> = new Map();
 
-		for (const [key, data] of allItems) {
+		for (const [_key, data] of allItems) {
 			const [iKey, iValue] = Object.entries(data.value!)[0];
 
 			// Check if the item is expired
@@ -194,7 +194,7 @@ export class HybridWebCache {
 
 		const result: Map<string, DataGetType<unknown>> = new Map();
 
-		for (const [key, data] of allItems) {
+		for (const [_key, data] of allItems) {
 			const [iKey, iValue] = Object.entries(data.value!)[0];
 
 			// Check if the item is expired
