@@ -1,6 +1,6 @@
 {
   "name": "hybrid-webcache",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Hybrid WebCache - A library that combines `localStorage`, `IndexedDB` and memory to provide a high-performance hybrid cache with multi-instance synchronization support.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -39,7 +39,7 @@
     "format:check": "prettier --check \"src/**/*.ts\" \"tests/**/*.ts\"",
     "test": "jest --detectOpenHandles --silent=false",
     "test:c": "jest --detectOpenHandles --coverage",
-    "pub:release": "node ./node_modules/gh_deploy/index.js"
+    "pub:release": "node ./node_modules/gh_deploy/index.mjs"
   },
   "dependencies": {
     "lodash": "^4.17.21"
