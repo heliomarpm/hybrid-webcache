@@ -36,6 +36,17 @@ export class Utils {
 		return expiresAt > 0 ? expiresAt <= Date.now() : false;
 	}
 
+	static isSessionStorageAvailable(): boolean {
+		try {
+			const testKey = '__test__';
+			sessionStorage.setItem(testKey, testKey);
+			sessionStorage.removeItem(testKey);
+			return true;
+		} catch (e) {
+			return false;
+		}
+	}
+
 	static isLocalStorageAvailable(): boolean {
 		try {
 			const testKey = '__test__';

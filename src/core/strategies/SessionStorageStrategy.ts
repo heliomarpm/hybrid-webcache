@@ -1,6 +1,6 @@
 import { StorageBase, DataGetType, DataSetType, StorageType, ValueTypes } from '../models';
 
-export class LocalStorageStrategy implements StorageBase {
+export class SessionStorageStrategy implements StorageBase {
 	private prefixKey: string;
 
 	constructor(prefixKey: string = 'HybridWebCache') {
@@ -16,7 +16,7 @@ export class LocalStorageStrategy implements StorageBase {
 	}
 
 	setSync<T extends ValueTypes>(key: string, data: DataSetType<T>): void {
-		return localStorage.setItem(this.formattedKey(key), JSON.stringify(data));
+		return sessionStorage.setItem(this.formattedKey(key), JSON.stringify(data));
 	}
 
 	get<T extends ValueTypes>(key: string): Promise<DataGetType<T> | undefined> {
@@ -24,7 +24,7 @@ export class LocalStorageStrategy implements StorageBase {
 	}
 
 	getSync<T extends ValueTypes>(key: string): DataGetType<T> | undefined {
-		return this.hasSync(key) ? JSON.parse(localStorage.getItem(this.formattedKey(key))!) : undefined;
+		return this.hasSync(key) ? JSON.parse(sessionStorage.getItem(this.formattedKey(key))!) : undefined;
 	}
 
 	getAll(): Promise<Map<string, DataGetType<unknown>> | null> {
@@ -34,10 +34,10 @@ export class LocalStorageStrategy implements StorageBase {
 	getAllSync(): Map<string, DataGetType<unknown>> | null {
 		const data = new Map();
 
-		for (let i = 0; i < localStorage.length; i++) {
-			const key = localStorage.key(i)!;
+		for (let i = 0; i < sessionStorage.length; i++) {
+			const key = sessionStorage.key(i)!;
 			if (key.startsWith(this.prefixKey)) {
-				data.set(key.replace(this.prefixKey, ''), JSON.parse(localStorage.getItem(key)!));
+				data.set(key.replace(this.prefixKey, ''), JSON.parse(sessionStorage.getItem(key)!));
 			}
 		}
 
@@ -49,7 +49,7 @@ export class LocalStorageStrategy implements StorageBase {
 	}
 
 	hasSync(key: string): boolean {
-		return !!localStorage.getItem(this.formattedKey(key));
+		return !!sessionStorage.getItem(this.formattedKey(key));
 	}
 
 	unset(key?: string): Promise<boolean> {
@@ -60,39 +60,35 @@ export class LocalStorageStrategy implements StorageBase {
 		let result = false;
 
 		if (!key) {
-			result = localStorage.length > 0;
+			result = sessionStorage.length > 0;
 			let index = 0;
 			do {
-				const key = localStorage.key(index);
+				const key = sessionStorage.key(index);
 				if (key && key.startsWith(this.prefixKey)) {
-					localStorage.removeItem(key);
+					sessionStorage.removeItem(key);
 					result = true;
 				} else {
 					index++;
 				}
-			} while (index < localStorage.length);
+			} while (index < sessionStorage.length);
 			return result;
 		} else {
 			result = this.hasSync(key);
 			if (result) {
 				const fKey = this.formattedKey(key);
-				localStorage.removeItem(fKey);
+				sessionStorage.removeItem(fKey);
 			}
 			return result;
 		}
 	}
 
 	get length(): number {
-		return localStorage.length;
+		return sessionStorage.length;
 	}
 
 	get bytes(): number {
 		const all = this.getAllSync();
 		if (all === null) return 0;
-
-		// const obj = Object.fromEntries(this.getAllSync()!);
-		// const jsonString = JSON.stringify(obj);
-		// return new TextEncoder().encode(jsonString).length;
 
 		let totalBytes = 0;
 		for (const [key, value] of all) {
@@ -103,6 +99,6 @@ export class LocalStorageStrategy implements StorageBase {
 	}
 
 	get type(): StorageType {
-		return StorageType.LocalStorage;
+		return StorageType.SessionStorage;
 	}
 }

@@ -14,12 +14,12 @@ export interface StorageBase {
 
 	hasSync(key: string): boolean;
 
-	unset(): Promise<boolean>;
-	unset(key: string): Promise<boolean>;
+	// unset(): Promise<boolean>;
+	// unset(key: string): Promise<boolean>;
 	unset(key?: string): Promise<boolean>;
 
-	unsetSync(): boolean;
-	unsetSync(key: string): boolean;
+	// unsetSync(): boolean;
+	// unsetSync(key: string): boolean;
 	unsetSync(key?: string): boolean;
 
 	get length(): number;

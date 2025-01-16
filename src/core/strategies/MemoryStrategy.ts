@@ -31,14 +31,10 @@ export class MemoryStrategy implements StorageBase {
 		return this.storage.has(key);
 	}
 
-	unset(): Promise<boolean>;
-	unset(key: string): Promise<boolean>;
 	unset(key?: string): Promise<boolean> {
 		return Promise.resolve(!key ? this.unsetSync() : this.unsetSync(key));
 	}
 
-	unsetSync(): boolean;
-	unsetSync(key: string): boolean;
 	unsetSync(key?: string): boolean {
 		if (!key) {
 			if (this.storage.size > 0) {

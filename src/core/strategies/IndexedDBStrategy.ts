@@ -4,7 +4,7 @@ export class IndexedDBStrategy implements StorageBase {
 	private db: IDBDatabase | null = null;
 	private memoryCache: Map<string, any> = new Map();
 	private queue: Array<() => void> = [];
-	private isProcessingQueue: boolean = false;
+	// private isProcessingQueue: boolean = false;
 
 	private baseName: string;
 	private storeName: string;
@@ -18,7 +18,11 @@ export class IndexedDBStrategy implements StorageBase {
 		this.channel = new BroadcastChannel(this.storeName);
 		this.channel.onmessage = this.handleSyncEvent.bind(this);
 
-		this.loadMemoryFromIndexedDB();
+		this.init();
+	}
+
+	private async init() {
+		await this.loadMemoryFromIndexedDB();
 	}
 
 	private handleSyncEvent(event: MessageEvent): void {
@@ -74,9 +78,9 @@ export class IndexedDBStrategy implements StorageBase {
 			};
 
 			// request.onerror = (event)=> reject(event);
-			request.onerror = () => {
-				console.error('Failed to open IndexedDB:', request.error);
-				reject(request.error);
+			request.onerror = (event) => {
+				console.error(`Failed to open IndexedDB: ${(event.target as IDBOpenDBRequest).error}`);
+				reject((event.target as IDBOpenDBRequest).error);
 			};
 		});
 	}
@@ -177,8 +181,7 @@ export class IndexedDBStrategy implements StorageBase {
 	hasSync(key: string): boolean {
 		return this.memoryCache.has(key);
 	}
-	unset(): Promise<boolean>;
-	unset(key: string): Promise<boolean>;
+
 	unset(key?: string): Promise<boolean> {
 		if (key) {
 			this.memoryCache.delete(key);
@@ -189,8 +192,6 @@ export class IndexedDBStrategy implements StorageBase {
 		return this.execute('readwrite', store => store.clear());
 	}
 
-	unsetSync(): boolean;
-	unsetSync(key: string): boolean;
 	unsetSync(key?: string): boolean {
 		if (key) {
 			this.memoryCache.delete(key);
@@ -220,6 +221,140 @@ export class IndexedDBStrategy implements StorageBase {
 			totalSize += new TextEncoder().encode(JSON.stringify(value)).length;
 		}
 		return totalSize;
+	}
+
+	get type(): StorageType {
+		return StorageType.IndexedDB;
+	}
+}
+
+
+
+export class IndexedDBStrategy2 implements StorageBase {
+	private db: IDBDatabase | null = null;
+	private baseName: string;
+	private storeName: string;
+
+	constructor(baseName: string = 'HybridWebCache', storeName?: string) {
+		this.baseName = baseName.trim().length === 0 ? 'HybridWebCache' : baseName.trim();
+		this.storeName = storeName?.trim() ?? this.baseName;
+	}
+
+	private async openDB(): Promise<IDBDatabase> {
+		if (this.db) return this.db;
+
+		return new Promise((resolve, reject) => {
+			const request = indexedDB.open(this.baseName, 1);
+
+			request.onupgradeneeded = event => {
+				const db = (event.target as IDBOpenDBRequest).result;
+				if (!db.objectStoreNames.contains(this.storeName)) {
+					db.createObjectStore(this.storeName, { keyPath: 'id' });
+				}
+			};
+
+			request.onsuccess = event => {
+				this.db = (event.target as IDBOpenDBRequest).result;
+				resolve(this.db);
+			};
+
+			// request.onerror = (event)=> reject(event);
+			request.onerror = () => {
+				console.error('Failed to open IndexedDB:', request.error);
+				reject(request.error);
+			};
+		});
+	}
+
+	private async execute(transactionMode: IDBTransactionMode, operation: (store: IDBObjectStore) => IDBRequest): Promise<any> {
+		if (!this.db) await this.openDB();
+
+		const transaction = this.db!.transaction(this.storeName, transactionMode);
+		const store = transaction.objectStore(this.storeName);
+		const request = operation(store);
+
+		return new Promise((resolve, reject) => {
+			request.onsuccess = () => {
+				resolve(transactionMode === 'readonly' ? request.result : undefined);
+			};
+			request.onerror = () => reject(request.error);
+		});
+	}
+
+	private logPerformance(methodName: string, start: number) {
+		console.log(`[Performance] ${methodName} executed in ${Date.now() - start}ms`);
+	}
+
+	async set<T extends ValueTypes>(key: string, data: DataSetType<T>): Promise<void> {
+		await this.execute('readwrite', store => store.put({ id: key, ...data }));
+	}
+
+	setSync<T extends ValueTypes>(key: string, data: DataSetType<T>): void {
+		throw new Error('Method not implemented.');
+	}
+
+	async get<T extends ValueTypes>(key: string): Promise<DataGetType<T> | undefined> {
+		return await this.execute('readonly', store => store.get(key));
+	}
+
+	getSync<T extends ValueTypes>(key: string): DataGetType<T> | undefined {
+		throw new Error('Method not implemented.');
+	}
+
+	async getAll(): Promise<Map<string, DataGetType<unknown>> | null> {
+		const result = new Map<string, DataGetType<unknown>>();
+		await this.execute('readonly', store => {
+			const request = store.openCursor();
+			request.onsuccess = event => {
+				const cursor = (event.target as IDBRequest<IDBCursorWithValue>).result;
+				if (cursor) {
+					result.set(cursor.key as string, cursor.value);
+					cursor.continue();
+				}
+			};
+			return request;
+		});
+		return result.size > 0 ? result : null;
+	}
+
+	getAllSync(): Map<string, DataGetType<unknown>> | null {
+		throw new Error('Method not implemented.');
+	}
+
+	async has(key: string): Promise<boolean> {
+		const value = await this.get(key);
+		return value !== undefined;
+	}
+	hasSync(key: string): boolean {
+		throw new Error('Method not implemented.');
+	}
+
+	unset(): Promise<boolean>;
+	unset(key: string): Promise<boolean>;
+	unset(key?: string): Promise<boolean> {
+		if (key) {
+			return this.execute('readwrite', store => store.delete(key));
+		}
+
+		return this.execute('readwrite', store => store.clear());
+	}
+
+	unsetSync(): boolean;
+	unsetSync(key: string): boolean;
+	unsetSync(key?: string): boolean {
+		if (key) {
+			throw new Error('Method not implemented.');
+		}
+
+		throw new Error('Method not implemented.');
+	}
+
+	get length(): number {
+		throw new Error('Method not implemented.');
+	}
+
+	get bytes(): number {
+		throw new Error('Method not implemented.');
 	}
 
 	get type(): StorageType {

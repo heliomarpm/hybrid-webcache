@@ -2,6 +2,7 @@ export enum StorageType {
 	Auto,
 	LocalStorage,
 	IndexedDB,
+	SessionStorage,
 	Memory
 }
 
@@ -18,14 +19,6 @@ export type OptionsType = {
 	ttl: Partial<TTLType>;
 	removeExpired: boolean;
 };
-
-// export type SetOptionsType = {
-// 	ttl: Partial<TTLType>;
-// };
-
-// export type GetOptionsType = {
-// 	removeExpired: boolean;
-// };
 
 export interface DataSetType<T> {
 	value: T;
