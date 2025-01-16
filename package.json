@@ -1,18 +1,21 @@
 {
   "name": "hybrid-webcache",
   "version": "0.1.1",
-  "description": "Hybrid WebCache - A library that combines `localStorage`, `IndexedDB` and memory to provide a high-performance hybrid cache with multi-instance synchronization support.",
+  "description": "Hybrid WebCache - A library that combines `localStorage`, `IndexedDB`, `SessionStorage` and `Memory` to provide a high-performance hybrid cache with multi-instance synchronization support.",
   "main": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "files": [
-    "dist/**/*"
-  ],
+  "types": "dist/index.d.ts",  
   "author": "Heliomar P. Marques",
   "homepage": "https://github.com/heliomarpm/hybrid-webcache#readme",
   "repository": {
     "type": "git",
     "url": "git://github.com/heliomarpm/hybrid-webcache.git"
   },
+  "publishConfig": {
+    "heliomarpm:registry": "https://npm.pkg.github.com"
+  },
+  "files": [
+    "dist/**/*"
+  ],
   "license": "MIT",
   "keywords": [
     "hybrid",
