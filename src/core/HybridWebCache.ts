@@ -517,7 +517,7 @@ export class HybridWebCache {
 
 			if (data) {
 				if (_unset(data.value, keyPath)) {
-					if (Object.keys(data.value || {}).length === 0) {
+					if (Object.keys(data.value || {}).length > 0) {
 						//update
 						this.storageEngine.setSync(key, data);
 						return true;
