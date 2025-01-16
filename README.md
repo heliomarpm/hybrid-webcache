@@ -11,7 +11,6 @@
   <a href="https://navto.me/heliomarpm" target="_blank"><img src="https://navto.me/assets/navigatetome-brand.png" width="32"/></a>
 
   ![lodash](https://img.shields.io/github/package-json/dependency-version/heliomarpm/hybrid-webcache/lodash)  
-  <!-- ![jest](https://img.shields.io/github/package-json/dependency-version/heliomarpm/keyvalues-storage/dev/jest) -->
 </h1>
 
 <p>
@@ -32,11 +31,11 @@
      <img alt="liberapay url" src="https://img.shields.io/badge/liberapay-1C1E26?style=for-the-badge&labelColor=1C1E26&color=f6c915"/>
   </a>
   <!-- Version -->
-  <a href="https://github.com/heliomarpm/keyvalues-storage/releases" target="_blank" rel="noopener noreferrer">
-     <img alt="releases url" src="https://img.shields.io/github/v/release/heliomarpm/keyvalues-storage?style=for-the-badge&labelColor=1C1E26&color=2ea043"/>
-  </a>  
+  <!-- <a href="https://github.com/heliomarpm/hybrid-webcache/releases" target="_blank" rel="noopener noreferrer">
+     <img alt="releases url" src="https://img.shields.io/github/v/release/heliomarpm/hybrid-webcache?style=for-the-badge&labelColor=1C1E26&color=2ea043"/>
+  </a>   -->
   <!-- License -->
-  <a href="https://github.com/heliomarpm/keyvalues-storage/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">
+  <a href="https://github.com/heliomarpm/hybrid-webcache/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">
     <img alt="license url" src="https://img.shields.io/badge/license%20-MIT-1C1E26?style=for-the-badge&labelColor=1C1E26&color=61ffca"/>
   </a>
 </p>
@@ -44,7 +43,7 @@
 
 
 ## Summary
-The `HybridWebCache` class is a caching utility that abstracts different storage mechanisms (LocalStorage, IndexedDB, Memory) to store and retrieve data with optional expiration times (TTL). It automatically selects the best available storage type and provides both asynchronous and synchronous methods for cache operations.
+The `HybridWebCache` class is a caching utility that abstracts different storage mechanisms (LocalStorage, IndexedDB, SessionStorage, Memory) to store and retrieve data with optional expiration times (TTL). It automatically selects the best available storage type and provides both asynchronous and synchronous methods for cache operations.
 
 ## Installation
 
@@ -70,9 +69,9 @@ To create a HybridWebCache instance, you need to provide a name for the database
 
 ```ts 
 const cache = new HybridWebCache('MyAppCache', {
-    ttl: { minutes: 10, days: 1 },
-    removeExpired: true,
-	storage: StorageType.Auto
+  ttl: { minutes: 10, days: 1 },
+  removeExpired: true,
+  storage: StorageType.Auto
 });
 ```
 
@@ -82,15 +81,16 @@ const cache = new HybridWebCache('MyAppCache', {
 | ---           | ---           | ---
 | ttl           | TTLType       | Sets the time to live for data in the cache. Can be in minutes, hours, or days.
 | removeExpired | boolean       | Automatically removes expired items when attempting to access them.
-| storage       | StorageType   | `Auto`, `LocalStorage`, `IndexedDB` or `Memory`. Sets the storage engine. Auto selects the best available.
+| storage       | StorageType   | `Auto`, `LocalStorage`, `IndexedDB`, `SessionStorage` or `Memory`. Sets the storage engine. Auto selects the best available.
 
 ## Types Used
 
 ```ts
 enum StorageType {
-	Auto,
+  Auto,
 	LocalStorage,
 	IndexedDB,
+  SessionStorage,
 	Memory
 }
 
@@ -170,11 +170,11 @@ await cache.unset('user.name');
 
 const color =
 {
-    "name": "cerulean",
-    "code": {
-		"hex": "#003BE6",
-        "rgb": [0, 179, 230]
-    }
+  "name": "cerulean",
+  "code": {
+    "hex": "#003BE6",
+    "rgb": [0, 179, 230]
+  }
 }
 
 // Set a key-value
@@ -243,13 +243,16 @@ const exists = await cache.has("color.name");
 // Remove a key-value pair
 await cache.unset("color.name");
 await cache.getAll();
-// => { "code": { value: {"rgb": [0, 179, 230], "hex": "#003BE6" }, expiresAt: 1733628804164, isExpired: false} }
+// Result Map(key, value) => { key: "code", value: {expiresAt: 1733628804164, isExpired: false, value: {"rgb": [0, 179, 230], "hex": "#003BE6" } } }
+
+await cache.getJson();
+// => {"code": {"rgb": [0, 179, 230], "hex": "#003BE6"} }
 
 const exists = cache.hasSync("color.name");
 // => false
 
 cache.unset().then(() => {
-	console.log("All key-value pairs have been removed.");
+  console.log("All key-value pairs have been removed.");
 })
 ```
 
@@ -266,7 +269,7 @@ ___
 - `unset`/`unsetSync`: Removes a value from the cache.
 - `has`/`hasSync`: Checks if a key path exists
 - `getAll`/`getAllSync`: Retrieves all cache entries, optionally removing expired ones.
-- `getJson`/`getJsonSync`: Returns all cache entries as a JSON object.
+- `getJson`/`getJsonSync`: Returns all cache entries as a JSON object, optionally removing expired ones.
 - `resetWith`/`resetWithSync`: Clears the cache and sets new key-value pairs.
 ___
 ### Fields
@@ -335,10 +338,10 @@ If you appreciate that, please consider donating to the Developer.
 
 
 ----
-[url-npm]: https://www.npmjs.com/package/@heliomarpm/kvs
-[url-npm-badge]: https://img.shields.io/npm/v/@heliomarpm/kvs.svg
-[url-downloads-badge]: https://img.shields.io/npm/dm/@heliomarpm/kvs.svg
-[url-downloads]: http://badge.fury.io/js/@heliomarpm/kvs.svg
+[url-npm]: https://www.npmjs.com/package/hybrid-webcache
+[url-npm-badge]: https://img.shields.io/npm/v/hybrid-webcache.svg
+[url-downloads-badge]: https://img.shields.io/npm/dm/hybrid-webcache.svg
+[url-downloads]: http://badge.fury.io/js/hybrid-webcache.svg
 [url-deepscan-badge]: https://deepscan.io/api/teams/19612/projects/28422/branches/916358/badge/grade.svg
 [url-deepscan]: https://deepscan.io/dashboard#view=project&tid=19612&pid=28422&bid=916358
 [url-codefactor-badge]: https://www.codefactor.io/repository/github/heliomarpm/hybrid-webcache/badge
