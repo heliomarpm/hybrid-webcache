@@ -1,31 +1,29 @@
 import { Component } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { RouterOutlet } from '@angular/router';
 import { EmployeeModel } from './models/employee';
 import { HybridWebCache, StorageType } from 'hybrid-webcache';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, ReactiveFormsModule], // Importing necessary modules for form handling
+  imports: [ReactiveFormsModule], // Importing necessary modules for form handling
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent {
   title = 'CRUD_Angular18'; // Title of the app
 
-  cache = new HybridWebCache("HybridWebCache", { storage: StorageType.IndexedDB, ttl: { minutes: 5 }, removeExpired: true });
-
+  cache: HybridWebCache;
   employeeForm: FormGroup = new FormGroup({}); // FormGroup to manage the employee form controls
   employeeObj: EmployeeModel = new EmployeeModel(); // Object to hold the employee data
   employeeList: EmployeeModel[] = []; // Array to store the list of employees
 
   constructor() {
     this.createForm(); // Initialize the form when the component is created
-    const data = this.cache.getSync<EmployeeModel[]>("employees");
-    if (data?.value) {
-      this.employeeList = data.value;
-    }
+    this.cache = new HybridWebCache("HybridWebCache", { storage: StorageType.IndexedDB, ttl: { hours: 1 }, removeExpired: true });
+    this.employeeList = this.employees;
+
+    console.log(this.cache.info);
     //const data = localStorage.getItem("EmpData"); // Fetching old data from localStorage
     // if (data != null) {
     //   const parseData = JSON.parse(data);
@@ -33,10 +31,16 @@ export class AppComponent {
     // }
   }
 
+  get employees() {
+    return this.cache.getSync<EmployeeModel[]>("employees")?.value ?? Array<EmployeeModel>();
+  }
+
   // Method to reset the form and the employee object
   reset() {
     this.employeeObj = new EmployeeModel();
     this.createForm();
+
+    console.log(this.cache.info);
   }
 
   // Method to create and initialize the form with default values
@@ -55,14 +59,15 @@ export class AppComponent {
 
   // Method to save
   onSave() {
-    const data = this.cache.getSync<EmployeeModel[]>("employees")?.value ?? Array<EmployeeModel>();
-    console.log(data);
+    const data = this.employees;
     const empId = data.length + 1;
 
     this.employeeForm.controls['empId'].setValue(empId);
     this.cache.setSync(`employees[${empId - 1}]`, this.employeeForm.value);
 
-    // data.push(this.employeeForm.value);
+    if (empId === 1) {
+      data.push(this.employeeForm.value);
+    }
     console.log(data);
     this.employeeList = data;
 
@@ -80,6 +85,8 @@ export class AppComponent {
     // }
     // localStorage.setItem("EmpData", JSON.stringify(this.employeeList)); // Save the updated list to localStorage
     // this.reset(); // Reset the form after saving
+
+    console.log(this.cache.getAllSync())
   }
 
   // Method to edit
@@ -91,7 +98,7 @@ export class AppComponent {
   // Method to update
   onUpdate() {
     const employeeId = this.employeeForm.controls['empId'].value;
-    const employees = this.cache.getSync<EmployeeModel[]>("employees")?.value ?? [];
+    const employees = this.employees;
     const index = employees.findIndex(e => e.empId === employeeId);
 
     if (index > -1) {
@@ -127,7 +134,7 @@ export class AppComponent {
 
   // Method to delete
   onDelete(id: number): void {
-    const employees = this.cache.getSync<EmployeeModel[]>("employees")?.value ?? []; // Get the list of employees
+    const employees = this.employees; // Get the list of employees
 
     const index = employees.findIndex(e => e.empId === id); // Find the employee by ID
 

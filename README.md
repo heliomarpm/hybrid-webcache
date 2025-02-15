@@ -3,12 +3,12 @@
 <h1>
   <img src="./logo.png" alt="Hybrid WebCache" width="128" />
   <br>Hybrid WebCache
+  <a href="https://navto.me/heliomarpm" target="_blank"><img src="https://navto.me/assets/navigatetome-brand.png" width="32"/></a>
 
   [![DeepScan grade][url-deepscan-badge]][url-deepscan]
   [![CodeFactor][url-codefactor-badge]][url-codefactor] 
   ![CodeQL][url-codeql]<!-- ![Publish][url-publish] --> [![NPM version][url-npm-badge]][url-npm]
   [![Downloads][url-downloads-badge]][url-downloads]
-  <a href="https://navto.me/heliomarpm" target="_blank"><img src="https://navto.me/assets/navigatetome-brand.png" width="32"/></a>
 
   ![lodash](https://img.shields.io/github/package-json/dependency-version/heliomarpm/hybrid-webcache/lodash)  
 </h1>
@@ -35,17 +35,42 @@
      <img alt="releases url" src="https://img.shields.io/github/v/release/heliomarpm/hybrid-webcache?style=for-the-badge&labelColor=1C1E26&color=2ea043"/>
   </a>   -->
   <!-- License -->
-  <a href="https://github.com/heliomarpm/hybrid-webcache/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">
+  <!-- <a href="https://github.com/heliomarpm/hybrid-webcache/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">
     <img alt="license url" src="https://img.shields.io/badge/license%20-MIT-1C1E26?style=for-the-badge&labelColor=1C1E26&color=61ffca"/>
-  </a>
+  </a> -->
 </p>
 </div>
 
 
-## Summary
-The `HybridWebCache` class is a caching utility that abstracts different storage mechanisms (LocalStorage, IndexedDB, SessionStorage, Memory) to store and retrieve data with optional expiration times (TTL). It automatically selects the best available storage type and provides both asynchronous and synchronous methods for cache operations.
+## 🎯 Summary
 
-## Installation
+`HybridWebCache` is a library for efficient cache management in web applications, supporting multiple storage mechanisms transparently (LocalStorage, IndexedDB, SessionStorage and memory). With TTL (Time-To-Live) support, the library helps optimize performance by storing and retrieving data efficiently.
+
+## 🚀 Features
+
+- Hybrid caching 
+  - LocalStorage
+  - SessionStorage
+  - IndexedDB
+  - Memory (fallback)
+- Automatic expiration management (TTL)
+- TypeScript support
+- PWA-compatible
+- Simple integration with modern frameworks
+
+## 📁 Project structure:
+
+- `/src` - Main source code
+- `/test` - Unit tests
+- `/test/demo` - Web demo application
+
+## Main files:
+
+`src/index.ts` - Entry point
+`src/core/strategies/` - Different storage strategies
+`src/core/HybridWebCache.ts` - Main class
+
+## 📦 Installation
 
 You can install the library using `npm` or `yarn`:
 
@@ -55,35 +80,66 @@ npm i hybrid-webcache
 yarn add hybrid-webcache
 ```
 
-## Import 
+## 🔧 Basic Usage
 
 To use the library in a TypeScript or modern JavaScript project, you can import it directly:
 
 ```ts
 import { HybridWebCache } from 'hybrid-webcache';
+
+const cache = new HybridWebCache();
+
+await cache.set('sessionToken', 'abc123');
+const token = await cache.get<string>('sessionToken');
+
+console.log(`Token: ${token.value}`); // Output: Token: abc123
 ```
 
-## Initialization
+## 📖 API
 
 To create a HybridWebCache instance, you need to provide a name for the database and optionally settings:
 
 ```ts 
-const cache = new HybridWebCache('MyAppCache', {
+const cache = new HybridWebCache('MyApp', {
   ttl: { minutes: 10, days: 1 },
   removeExpired: true,
   storage: StorageType.Auto
 });
 ```
 
+### Main functionalities
+- Provides a unified interface for caching data using different storage backends.
+- Supports TTL for cache entries to automatically expire data.
+- Offers both asynchronous and synchronous methods for setting, getting, and removing cache entries.
+
+___
+### Methods
+- `constructor`: Initializes the cache with a base name and options, determining the storage engine.
+- `set`/`setSync`: Stores a value in the cache with an optional TTL.
+- `get`/`getSync`: Retrieves a value from the cache, optionally removing expired entries.
+- `unset`/`unsetSync`: Removes a value from the cache.
+- `has`/`hasSync`: Checks if a key path exists
+- `getAll`/`getAllSync`: Retrieves all cache entries, optionally removing expired ones.
+- `getJson`/`getJsonSync`: Returns all cache entries as a JSON object, optionally removing expired ones.
+- `resetWith`/`resetWithSync`: Clears the cache and sets new key-value pairs.
+
+___
+### Fields
+- `baseName`: The base name for the cache, used as a prefix for keys.
+- `options`: Configuration options for the cache, including TTL and storage type.
+- `storageEngine`: The storage mechanism used for caching, determined at initialization.
+
+___
 ### Options
 
 | Parameter     | Type          | Description 
 | ---           | ---           | ---
-| ttl           | TTLType       | Sets the time to live for data in the cache. Can be in minutes, hours, or days.
-| removeExpired | boolean       | Automatically removes expired items when attempting to access them.
-| storage       | StorageType   | `Auto`, `LocalStorage`, `IndexedDB`, `SessionStorage` or `Memory`. Sets the storage engine. Auto selects the best available.
+| `ttl`           | `TTLType`       | Sets the time to live for data in the cache. Can be in minutes, hours, or days.
+| `removeExpired` | `boolean`       | Automatically removes expired items when attempting to access them.
+| `storage`       | `StorageType`   | `Auto`, `LocalStorage`, `IndexedDB`, `SessionStorage` or `Memory`. Sets the storage engine. Auto selects the best available.
 
-## Types Used
+___
+### Types Used
 
 ```ts
 enum StorageType {
@@ -117,9 +173,10 @@ interface DataGetType<T> extends DataSetType<T> {
 	isExpired: boolean;
 }
 ```
+___
 
-## Example Usage
-```typescript
+### Usage examples
+```ts
 
 /**
  * Default Options
@@ -136,13 +193,10 @@ const cache = new HybridWebCache()
 // create an instance for IndexedDB with TTL of 10 minutes and removal of expired items to default
 const cache = new HybridWebCache('myCache', { storage: StorageType.IndexedDB, ttl: 10 * 60 * 1000, removeExpired: true });
 
-await cache.set('sessionToken', 'abc123');
 await cache.set('userProfile', { name: 'Jane', age: 25 });
 
-const token = await cache.get<string>('sessionToken');
 const profile = await cache.get<{ name: string; age: number }>('userProfile');
 
-console.log(`Token: ${token.value}`); // Output: Token: abc123
 console.log(`User: ${profile.value.name}, Age: ${profile.value.age}`); // Output: User: Jane, Age: 25
 
 
@@ -157,7 +211,7 @@ const userName = await cache.get('user.firstName');
 const user = cache.getSync('user').value;
 // Outputs -> {user: {firstName: 'John', lastName: 'Doe' }}
 
-cache.SetSync(['user', 'age'], 33);
+cache.setSync(['user', 'age'], 33);
 const user = cache.getSync('user').value;
 // Outputs -> {user: {firstName: 'John', lastName: 'Doe', age: 33 }}
 
@@ -256,34 +310,14 @@ cache.unset().then(() => {
 })
 ```
 
-## Code Analysis
-### Main functionalities
-- Provides a unified interface for caching data using different storage backends.
-- Supports TTL for cache entries to automatically expire data.
-- Offers both asynchronous and synchronous methods for setting, getting, and removing cache entries.
-___
-### Methods
-- `constructor`: Initializes the cache with a base name and options, determining the storage engine.
-- `set`/`setSync`: Stores a value in the cache with an optional TTL.
-- `get`/`getSync`: Retrieves a value from the cache, optionally removing expired entries.
-- `unset`/`unsetSync`: Removes a value from the cache.
-- `has`/`hasSync`: Checks if a key path exists
-- `getAll`/`getAllSync`: Retrieves all cache entries, optionally removing expired ones.
-- `getJson`/`getJsonSync`: Returns all cache entries as a JSON object, optionally removing expired ones.
-- `resetWith`/`resetWithSync`: Clears the cache and sets new key-value pairs.
-___
-### Fields
-- `baseName`: The base name for the cache, used as a prefix for keys.
-- `options`: Configuration options for the cache, including TTL and storage type.
-- `storageEngine`: The storage mechanism used for caching, determined at initialization.
-___
-
 ## Dependencies
 
-- [lodash](https://lodash.com/): The Lodash library exported as Node.js modules.
+- [lodash](https://lodash.com/): For object manipulation
+- [Typescript](https://www.typescriptlang.org/): For static typing
+- [Jest](https://jestjs.io/): For testing
 
 
-# Contributing
+## 🤝 Contributing
 
 Please make sure to read the [Contributing Guide](docs/CONTRIBUTING.md) before making a pull request.
 
@@ -305,7 +339,7 @@ That said, there's a bunch of ways you can contribute to this project, like by:
 - :star2: Giving a star on this repository
 
 
-## Donate
+## 📢 Support the Project
 
 If you appreciate that, please consider donating to the Developer.
 
@@ -332,7 +366,7 @@ If you appreciate that, please consider donating to the Developer.
   </a>
 </p>
 
-## License
+## 📝 License
 
 [MIT © Heliomar P. Marques](LICENSE) <a href="#top">🔝</a>
 

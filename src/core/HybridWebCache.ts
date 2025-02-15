@@ -126,19 +126,14 @@ export class HybridWebCache {
 	 *              the instance's configured TTL.
 	 */
 	async set<T extends ValueTypes>(keyPath: KeyPath, value: T, ttl: Partial<TTLType> = this.options.ttl): Promise<void> {
-		try {
-			const key = this.createKey(keyPath);
-			const data = await this.storageEngine.get(key);
-			const obj = data?.value || {};
+		const key = this.createKey(keyPath);
+		const data = await this.storageEngine.get(key);
+		const obj = data?.value || {};
 
-			_set(obj as object, keyPath, value);
-			const dataSet = this.prepareDataSet(obj, ttl);
+		_set(obj as object, keyPath, value);
+		const dataSet = this.prepareDataSet(obj, ttl);
 
-			await this.storageEngine.set(key, dataSet.data);
-		} catch (error) {
-			console.error(`Failed to set data for keyPath ${keyPath}:`, error);
-			throw error;
-		}
+		return this.storageEngine.set(key, dataSet.data);
 	}
 
 	/**
@@ -596,7 +591,7 @@ export class HybridWebCache {
 	 * 
 	 * @returns The count of items in the storage.
 	 */
-	get lenght(): number {
+	get length(): number {
 		return this.storageEngine.length;
 	}
 

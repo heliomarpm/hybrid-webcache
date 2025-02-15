@@ -24,11 +24,11 @@ const persons: IPerson[] = [
 	{ name: 'Jane Doe', age: 33 },
 ];
 
-describe('LocalStorage Strategy', () => {
-	const hwc = new HybridWebCache('HybridWebCacheTest', { storage: StorageType.LocalStorage, removeExpired: false, ttl: { seconds: 1 } });
+describe('SessionStorage Strategy', () => {
+	const hwc = new HybridWebCache('HybridWebCacheTest', { storage: StorageType.SessionStorage, removeExpired: false, ttl: { seconds: 1 } });
 
 	beforeAll(() => {
-		Object.defineProperty(window, 'localStorage', {
+		Object.defineProperty(window, 'sessionStorage', {
 			value: (() => {
 				let store: Record<string, string> = {};
 				return {
@@ -55,25 +55,25 @@ describe('LocalStorage Strategy', () => {
 	afterAll(() => hwc.unsetSync());
 
 	it('test info size', () => {
-		expect(hwc.lenght).toBe(0);
+		expect(hwc.length).toBe(0);
 		expect(hwc.bytes).toBe(0);
 
 		hwc.setSync('persons', persons);
-		expect(hwc.lenght).toBe(1);
+		expect(hwc.length).toBe(1);
 		expect(hwc.bytes).toBeGreaterThanOrEqual(100);
 		expect(hwc.info.size).toBeDefined();
 	});
 
 	it('should initialize with default options when no options provided', () => {
-		const cache = new HybridWebCache();
+		const cache = new HybridWebCache("sessionDB", { storage: StorageType.SessionStorage });
 
 		expect(cache.info.options).toEqual({
 			ttl: 3600000,
 			removeExpired: true,
-			storage: StorageType.LocalStorage
+			storage: StorageType.SessionStorage
 		});
 
-		expect(cache.storageType).toBe(StorageType.LocalStorage);
+		expect(cache.storageType).toBe(StorageType.SessionStorage);
 	});
 
 
@@ -109,7 +109,7 @@ describe('LocalStorage Strategy', () => {
 		await hwc.set('num', 1);
 		expect((await hwc.get('num'))!.value).toBe(1);
 	});
-	
+
 	it('test setSync/getSync property number type', () => {
 		hwc.setSync('numSync', 2);
 		expect(hwc.getSync('numSync')!.value).toBe(2);
@@ -178,7 +178,7 @@ describe('LocalStorage Strategy', () => {
 
 	it('test get remove expired (NestedProperties)', async () => {
 		//runner after 1 second
-		expect((await hwc.get('obj.sobreNome', false))!.value).toBe('Marques');	
+		expect((await hwc.get('obj.sobreNome', false))!.value).toBe('Marques');
 		expect(await hwc.get('obj.sobreNome', true)).toBeUndefined();
 	}, 1000);
 	it('test getSync remove expired (NestedProperties)', () => {

@@ -37,11 +37,11 @@ describe('HybridWebCache', () => {
   it('test info size', () => {
     const cache = new HybridWebCache();
 
-    expect(cache.lenght).toBe(0);
+    expect(cache.length).toBe(0);
     expect(cache.bytes).toBe(0);
 
     cache.setSync('persons', persons);
-    expect(cache.lenght).toBe(1);
+    expect(cache.length).toBe(1);
     expect(cache.bytes).toBeGreaterThanOrEqual(100);
     expect(cache.info.size).toBeDefined();
 
@@ -51,7 +51,7 @@ describe('HybridWebCache', () => {
 
   // Set/get operations work with basic key-value pairs
   it('should set and get basic key-value pairs correctly', async () => {
-    const cache = new HybridWebCache();
+    const cache = new HybridWebCache("mem", { storage: StorageType.Memory });
     const testKey = 'testKey';
     const testValue = 'testValue';
 
@@ -60,6 +60,9 @@ describe('HybridWebCache', () => {
 
     expect(result?.value).toBe(testValue);
     expect(result?.isExpired).toBe(false);
+
+    cache.setSync(testKey, "val2")
+    expect(cache.getSync(testKey)!.value).toBe('val2');
 
     await cache.unset(testKey);
     expect((await cache.getJson())).toBeNull();
@@ -73,24 +76,24 @@ describe('HybridWebCache', () => {
 
     await cache.set('key', 'value');
     expect(cache.bytes).toBeGreaterThanOrEqual(50);
-    
+
     await new Promise(resolve => setTimeout(resolve, 1100));
-    
+
     const notRemove = await cache.get('key');
     expect(notRemove?.isExpired).toBeTruthy();
     expect(notRemove?.value).toBe('value');
 
     const remove = await cache.get('key', true);
     expect(remove).toBeUndefined();
-    
+
     const hasKey = await cache.has('key');
     expect(hasKey).toBeFalsy();
-    
+
     await cache.setSync('key1', 'value');
     cache.setSync('key2', 'value');
     cache.unsetSync();
     expect(cache.getAllSync()).toBeNull();
-    expect(cache.lenght).toBe(0);
+    expect(cache.length).toBe(0);
     expect(cache.bytes).toBe(0);
   });
 
@@ -150,7 +153,7 @@ describe('HybridWebCache', () => {
       ['key1', { value: 'value2', expiresAt: expect.any(Number), isExpired: false }]
     ]));
 
-    
+
     expect(cache.getSync('key1.value3')).toBeUndefined();
   });
 
@@ -195,9 +198,10 @@ describe('HybridWebCache', () => {
   });
 
   // Storage engine unavailability triggers appropriate fallbacks
-  it('should fallback to Memory storage when both LocalStorage and IndexedDB are unavailable', () => {
+  it('should fallback to Memory storage when both SessionStorage, LocalStorage and IndexedDB are unavailable', () => {
     jest.spyOn(Utils, 'isLocalStorageAvailable').mockReturnValue(false);
     jest.spyOn(Utils, 'isIndexedDBAvailable').mockReturnValue(false);
+    jest.spyOn(Utils, 'isSessionStorageAvailable').mockReturnValue(false);
     const cache = new HybridWebCache('TestCache', { storage: StorageType.Auto });
 
     expect(cache.storageType).toBe(StorageType.Memory);
@@ -278,7 +282,7 @@ describe('HybridWebCache', () => {
 
     //test get all property after added keys
     let result = await cache.get<object>('obj');
-    
+
     expect(result).toMatchObject(
       {
         value: { nome: 'Heliomar', sobreNome: 'Marques', conjugue: 'Angelina' },
@@ -292,7 +296,7 @@ describe('HybridWebCache', () => {
     expect(await cache.has('obj.sobreNome')).toBeFalsy();
 
     result = await cache.get<object>('obj');
-    
+
     expect(result).toMatchObject(
       {
         value: { nome: 'Heliomar', conjugue: 'Angelina' },
@@ -303,7 +307,7 @@ describe('HybridWebCache', () => {
 
   });
 
-  
+
   it('should deal with complex objects', async () => {
     const complex = {
       name: 'complex',
@@ -314,7 +318,7 @@ describe('HybridWebCache', () => {
       },
     };
 
-    const cache = new HybridWebCache();
+    const cache = new HybridWebCache("complexObj");
     await cache.set('complex', complex);
 
     const result = await cache.get('complex');
@@ -346,7 +350,7 @@ describe('HybridWebCache', () => {
       ['complex', { value: { name: 'square', enabled: true }, expiresAt: expect.any(Number), isExpired: false }]
     ]));
 
-    const json = cache.getJsonSync();    
+    const json = cache.getJsonSync();
     expect(json).toEqual({
       complex: { name: 'square', enabled: true }
     });
@@ -407,8 +411,8 @@ describe('HybridWebCache', () => {
     expect(await hwc.getAll()).toBeNull();
   }, 1000);
 
-  it('should set expired value (async)', async () => {    
-    await hwc.setSync('asyncExpired', 1, 1);    
+  it('should set expired value (async)', async () => {
+    await hwc.setSync('asyncExpired', 1, 1);
   });
 
   it('should get all after expired (async)', async () => {
@@ -439,7 +443,7 @@ describe('HybridWebCache', () => {
   }, 1000);
 
   it('should set expired value (sync)', () => {
-    hwc.setSync('syncExpired', 1, 1);    
+    hwc.setSync('syncExpired', 1, 1);
   });
 
   it('should get all after expired (sync)', () => {

@@ -3,15 +3,17 @@
   "version": "0.1.1",
   "description": "Hybrid WebCache - A library that combines `localStorage`, `IndexedDB`, `SessionStorage` and `Memory` to provide a high-performance hybrid cache with multi-instance synchronization support.",
   "main": "dist/index.js",
-  "types": "dist/index.d.ts",  
+  "types": "dist/index.d.ts",
   "author": "Heliomar P. Marques",
   "homepage": "https://github.com/heliomarpm/hybrid-webcache#readme",
   "repository": {
     "type": "git",
-    "url": "git://github.com/heliomarpm/hybrid-webcache.git"
+    "url": "git+https://github.com/heliomarpm/hybrid-webcache.git"
   },
   "publishConfig": {
-    "heliomarpm:registry": "https://npm.pkg.github.com"
+    "access": "public",
+    "registry": "https://registry.npmjs.org/",
+    "@heliomarpm:registry": "https://npm.pkg.github.com"
   },
   "files": [
     "dist/**/*"
@@ -39,7 +41,7 @@
     "build:dev": "tsc -p tsconfig.json",
     "build": "tsc -p tsconfig.prod.json",
     "format": "prettier --write \"src/**/*.ts\" ",
-    "format:check": "prettier --check \"src/**/*.ts\" \"tests/**/*.ts\"",
+    "format:check": "prettier --check \"src/**/*.ts\" \"test/**/*.ts\"",
     "test": "jest --detectOpenHandles --silent=false",
     "test:c": "jest --detectOpenHandles --coverage",
     "pub:release": "node ./node_modules/gh_deploy/index.mjs"

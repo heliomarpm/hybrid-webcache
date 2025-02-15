@@ -33,7 +33,6 @@ describe('indexedDB Storage Strategy', () => {
 	});
 
 	afterAll(() => {
-		// hwc.unsetSync();
 		// indexedDB.deleteDatabase('HybridWebCacheTest');
 	}
 	);
@@ -51,11 +50,11 @@ describe('indexedDB Storage Strategy', () => {
 	});
 
 	// it ('test info size', () => {
-	// 	expect(hwc.lenght).toBe(0);
+	// 	expect(hwc.length).toBe(0);
 	// 	expect(hwc.bytes).toBe(0);
 
 	// 	hwc.setSync('persons', persons);
-	// 	expect(hwc.lenght).toBe(1);
+	// 	expect(hwc.length).toBe(1);
 	// 	expect(hwc.bytes).toBeGreaterThanOrEqual(100);
 	// 	expect(hwc.info.size).toBeDefined();
 	// });
@@ -404,5 +403,29 @@ describe('indexedDB Storage Strategy', () => {
 	// 	hwc.setSync('novo_item', true);
 	// 	hwc.unsetSync();
 	// 	expect(hwc.getAllSync()).toBeNull();
+	// });
+
+	// test("should measure performance of set operation", async () => {
+	// 	console.log = jest.fn(); // Mock console.log
+
+	// 	const strategy = new IndexedDBStrategy("TestDB");
+
+	// 	// Perform the operation
+	// 	await strategy.set("performanceKey", { value: "testData" });
+
+	// 	// Verify performance log
+	// 	expect(console.log).toHaveBeenCalledWith(expect.stringContaining("[Performance] set executed in"));
+	// });
+
+	// test("should retain data after IndexedDB reload", async () => {
+	// 	const strategy = new IndexedDBStrategy("TestDB");
+
+	// 	// Set data and reload instance
+	// 	await strategy.set("persistKey", { value: "persistedData" });
+	// 	const newInstance = new IndexedDBStrategy("TestDB");
+
+	// 	// Ensure data is still accessible
+	// 	const result = await newInstance.get("persistKey");
+	// 	expect(result).toEqual({ value: "persistedData" });
 	// });
 });
