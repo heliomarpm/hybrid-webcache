@@ -14,8 +14,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # PUBLICANDO EM NPM
-      - uses: actions/setup-node@v4
+      - name: PUBLICANDO EM NPM
+        uses: actions/setup-node@v4
         with:
           node-version: '20.x'
           registry-url: 'https://registry.npmjs.org'
@@ -29,8 +29,8 @@ jobs:
           NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
 
 
-      # PUBLICANDO EM GITHUB PACKAGE
-      - uses: actions/setup-node@v4
+      - name: PUBLICANDO EM GITHUB PACKAGE
+        uses: actions/setup-node@v4
         with:
           node-version: '20.x'
           registry-url: 'https://npm.pkg.github.com'
@@ -40,7 +40,7 @@ jobs:
         run: npm ci
       
       - name: Publish to GitHub Packages
-        run: npm publish --access=public
+        run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
 
