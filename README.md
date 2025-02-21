@@ -144,10 +144,10 @@ ___
 ```ts
 enum StorageType {
   Auto,
-	LocalStorage,
-	IndexedDB,
+  LocalStorage,
+  IndexedDB,
   SessionStorage,
-	Memory
+  Memory
 }
 
 type ValueTypes = null | string | number | boolean | object | DictionaryType | ValueTypes[];
@@ -159,19 +159,20 @@ type KeyPath = string | Array<string>;
 type TTLType = number | { seconds?: number; minutes?: number; hours?: number; days?: number };
 
 type OptionsType = {
-	storage: StorageType;
-	ttl: Partial<TTLType>;
-	removeExpired: boolean;
+  storage: StorageType;
+  ttl: Partial<TTLType>;
+  removeExpired: boolean;
 };
 
 interface DataSetType<T> {
-	value: T;
-	expiresAt: number;
+  value: T;
+  expiresAt: number;
 }
 
 interface DataGetType<T> extends DataSetType<T> {
-	isExpired: boolean;
+  isExpired: boolean;
 }
+
 ```
 ___
 
@@ -308,6 +309,7 @@ const exists = cache.hasSync("color.name");
 cache.unset().then(() => {
   console.log("All key-value pairs have been removed.");
 })
+
 ```
 
 ## Dependencies
