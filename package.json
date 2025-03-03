@@ -37,11 +37,10 @@
     "crud"
   ],
   "scripts": {
-    "start": "ts-node src/index.ts",
     "prebuild": "rimraf dist",
     "build:dev": "tsc -p tsconfig.json",
     "build": "tsc -p tsconfig.prod.json",
-    "format": "prettier --write \"src/**/*.ts\" ",
+    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "format:check": "prettier --check \"src/**/*.ts\" \"test/**/*.ts\"",
     "test": "jest --detectOpenHandles --silent=false",
     "test:c": "jest --detectOpenHandles --coverage",
