@@ -6,20 +6,18 @@
   "types": "dist/index.d.ts",
   "type": "commonjs",
   "author": "Heliomar P. Marques",
+  "license": "MIT",
   "homepage": "https://github.com/heliomarpm/hybrid-webcache#readme",
+  "bugs": {
+    "url": "https://github.com/heliomarpm/hybrid-webcache/issues"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/heliomarpm/hybrid-webcache.git"
   },
-  "publishConfig": {
-    "access": "public",
-    "registry": "https://registry.npmjs.org/",
-    "@heliomarpm:registry": "https://npm.pkg.github.com"
-  },
   "files": [
     "dist/**/*"
   ],
-  "license": "MIT",
   "keywords": [
     "hybrid",
     "cache",
