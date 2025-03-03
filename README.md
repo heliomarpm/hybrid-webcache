@@ -42,7 +42,7 @@
 </div>
 
 
-## 🎯 Summary
+## 🎯 About
 
 `HybridWebCache` is a library for efficient cache management in web applications, supporting multiple storage mechanisms transparently (LocalStorage, IndexedDB, SessionStorage and memory). With TTL (Time-To-Live) support, the library helps optimize performance by storing and retrieving data efficiently.
 
@@ -66,9 +66,9 @@
 
 ## Main files:
 
-`src/index.ts` - Entry point
-`src/core/strategies/` - Different storage strategies
-`src/core/HybridWebCache.ts` - Main class
+- `src/index.ts` - Entry point
+- `src/core/strategies` - Different storage strategies
+- `src/core/HybridWebCache.ts` - Main class
 
 ## 📦 Installation
 
