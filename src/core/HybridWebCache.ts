@@ -15,14 +15,13 @@ export class HybridWebCache {
 	private options: OptionsType;
 	private storageEngine: StorageBase;
 
-
 	/**
 	 * Constructor for  Hybrid WebCache's.
 	 * To reset the cache, use [resetWith()|resetWithSync()].
-	 * 
+	 *
 	 * @param {string} [baseName='HybridWebCache'] - The base name of the cache.
 	 * @param {Partial<OptionsType>} [options] - The options for the cache.
-	 * 
+	 *
 	 * Default Options:
 	 * ```js
 	 * {
@@ -58,12 +57,12 @@ export class HybridWebCache {
 
 	/**
 	 * Resets the storage with the provided key-value pairs and optional TTL.
-	 * 
+	 *
 	 * This method first clears all existing entries in the storage engine.
 	 * It then iterates over the provided key-value pairs, setting each one
 	 * in the storage with the specified TTL. If no TTL is provided, the
 	 * default TTL from the options is used.
-	 * 
+	 *
 	 * @template T - The type of values being stored.
 	 * @param keyValues - An object containing key-value pairs to be stored.
 	 * @param ttl - Optional TTL settings for the stored values. Defaults to
@@ -88,12 +87,12 @@ export class HybridWebCache {
 
 	/**
 	 * Resets the storage with the provided key-value pairs and optional TTL.
-	 * 
+	 *
 	 * This method first clears all existing entries in the storage engine.
 	 * It then iterates over the provided key-value pairs, setting each one
 	 * in the storage with the specified TTL. If no TTL is provided, the
 	 * default TTL from the options is used.
-	 * 
+	 *
 	 * @template T - The type of values being stored.
 	 * @param keyValues - An object containing key-value pairs to be stored.
 	 * @param ttl - Optional TTL settings for the stored values. Defaults to
@@ -114,7 +113,7 @@ export class HybridWebCache {
 
 	/**
 	 * Sets the value for a given keyPath in the storage engine.
-	 * 
+	 *
 	 * If the keyPath already exists, its value is updated with the provided
 	 * value. If the keyPath does not exist, a new entry is created with the
 	 * provided TTL.
@@ -138,7 +137,7 @@ export class HybridWebCache {
 
 	/**
 	 * Synchronous version of set.
-	 * 
+	 *
 	 * @category Core
 	 * @template T - The type of the value being stored.
 	 * @param keyPath - The keyPath to be stored.
@@ -160,11 +159,11 @@ export class HybridWebCache {
 
 	/**
 	 * Retrieves the value associated with the specified keyPath from the storage engine.
-	 * 
+	 *
 	 * If the value is found, it returns an object containing the value, expiration time,
 	 * and expiration status. If the value is expired and the `removeExpired` flag is set
 	 * to true, the expired value is removed from storage and `undefined` is returned.
-	 * 
+	 *
 	 * @category Core
 	 * @template T - The type of the value being retrieved.
 	 * @param keyPath - The path to the key whose value should be retrieved.
@@ -202,13 +201,13 @@ export class HybridWebCache {
 
 	/**
 	 * Synchronous version of get.
-	 * 
+	 *
 	 * Retrieves the value associated with the specified keyPath from the storage engine.
-	 * 
+	 *
 	 * If the value is found, it returns an object containing the value, expiration time,
 	 * and expiration status. If the value is expired and the `removeExpired` flag is set
 	 * to true, the expired value is removed from storage and `undefined` is returned.
-	 * 
+	 *
 	 * @category Core
 	 * @template T - The type of the value being retrieved.
 	 * @param keyPath - The path to the key whose value should be retrieved.
@@ -244,14 +243,12 @@ export class HybridWebCache {
 		return;
 	}
 
-
-
 	/**
 	 * Retrieves all key-value pairs from the storage engine.
-	 * 
+	 *
 	 * If the `removeExpired` flag is set to true, expired values are removed from storage
 	 * before being returned.
-	 * 
+	 *
 	 * @param removeExpired - A flag indicating whether to remove expired values from storage.
 	 *                        Defaults to the instance's configured setting.
 	 * @returns A map of key-value pairs, where each value is an object containing the value,
@@ -291,10 +288,10 @@ export class HybridWebCache {
 	/**
 	 * Synchronously retrieves all items from storage as a map of key-value pairs,
 	 * where each value is an object containing the value, expiration time, and expiration status.
-	 * 
+	 *
 	 * If the `removeExpired` flag is set to true, expired values are removed from storage
 	 * before being returned.
-	 * 
+	 *
 	 * @param removeExpired - A flag indicating whether to remove expired values from storage.
 	 *                        Defaults to the instance's configured setting.
 	 * @returns A map of key-value pairs, where each value is an object containing the value,
@@ -333,13 +330,13 @@ export class HybridWebCache {
 
 	/**
 	 * Checks if a value exists for the specified keyPath in the storage engine.
-	 * 
+	 *
 	 * This method first creates a key from the provided keyPath. If the key matches
 	 * the string representation of the keyPath, it directly checks the storage engine
 	 * for the presence of the key. Otherwise, it retrieves the data for the keyPath
 	 * and determines existence based on the presence of non-null value data.
-	 * 
-	 * @category Core	
+	 *
+	 * @category Core
 	 * @param keyPath - The path to the key to check for existence.
 	 * @returns A promise that resolves to `true` if the key exists and has a non-null value,
 	 *          or `false` otherwise.
@@ -357,13 +354,13 @@ export class HybridWebCache {
 
 	/**
 	 * Synchronously checks if a value exists for the specified keyPath in the storage engine.
-	 * 
+	 *
 	 * This method creates a key from the provided keyPath. If the key matches
 	 * the string representation of the keyPath, it directly checks the storage engine
 	 * for the presence of the key using `hasSync`. Otherwise, it retrieves the data for
 	 * the keyPath using `getSync` and determines existence based on the presence of non-null
 	 * value data.
-	 * 
+	 *
 	 * @category Core
 	 * @param keyPath - The path to the key to check for existence.
 	 * @returns `true` if the key exists and has a non-null value, or `false` otherwise.
@@ -441,7 +438,7 @@ export class HybridWebCache {
 			if (data) {
 				if (_unset(data.value, keyPath)) {
 					if (Object.keys(data.value || {}).length > 0) {
-						//update						
+						//update
 						await this.storageEngine.set(key, data);
 						return true;
 					}
@@ -529,10 +526,10 @@ export class HybridWebCache {
 
 	/**
 	 * Asynchronously retrieves all key-value pairs from the storage as a JSON object.
-	 * 
+	 *
 	 * If the `removeExpired` flag is set to true, expired values are removed from storage
 	 * before being included in the result.
-	 * 
+	 *
 	 * @category Core
 	 * @param removeExpired - A flag indicating whether to remove expired values from storage.
 	 *                        Defaults to the instance's configured setting.
@@ -556,13 +553,12 @@ export class HybridWebCache {
 		return allValues;
 	}
 
-
 	/**
 	 * Synchronously retrieves all key-value pairs from the storage as a JSON object.
-	 * 
+	 *
 	 * If the `removeExpired` flag is set to true, expired values are removed from storage
 	 * before being included in the result.
-	 * 
+	 *
 	 * @category Core
 	 * @param removeExpired - A flag indicating whether to remove expired values from storage.
 	 *                        Defaults to the instance's configured setting.
@@ -588,7 +584,7 @@ export class HybridWebCache {
 
 	/**
 	 * Retrieves the number of items currently stored in the cache.
-	 * 
+	 *
 	 * @returns The count of items in the storage.
 	 */
 	get length(): number {
@@ -597,17 +593,16 @@ export class HybridWebCache {
 
 	/**
 	 * Retrieves the total number of bytes used by the cache in the storage.
-	 * 
+	 *
 	 * @returns The total bytes used by the cache.
 	 */
 	get bytes(): number {
 		return this.storageEngine.bytes;
 	}
 
-
 	/**
 	 * Provides information about the current cache.
-	 * 
+	 *
 	 * @returns An object with the following properties:
 	 *          - `dataBase`: The name of the database used by the cache.
 	 *          - `size`: The total number of bytes used by the cache in the storage.
@@ -627,7 +622,7 @@ export class HybridWebCache {
 
 	/**
 	 * Returns the type of storage engine used by the cache.
-	 * 
+	 *
 	 * @returns The type of storage engine used by the cache.
 	 */
 	get storageType(): StorageType {

@@ -58,7 +58,6 @@ export class IndexedDBStrategy implements StorageBase {
 		// 		cursor.continue();
 		// 	}
 		// };
-
 	}
 
 	private async openDB(): Promise<IDBDatabase> {
@@ -75,14 +74,14 @@ export class IndexedDBStrategy implements StorageBase {
 			};
 
 			// request.onsuccess = () => resolve(request.result);
-            // request.onerror = (event) => reject(event);
+			// request.onerror = (event) => reject(event);
 
 			request.onsuccess = event => {
 				this.db = (event.target as IDBOpenDBRequest).result;
 				resolve(this.db);
 			};
 
-			request.onerror = (event) => {
+			request.onerror = event => {
 				console.error(`Failed to open IndexedDB: ${(event.target as IDBOpenDBRequest).error}`);
 				reject((event.target as IDBOpenDBRequest).error);
 			};
@@ -114,7 +113,7 @@ export class IndexedDBStrategy implements StorageBase {
 			return operation(store);
 		};
 
-		request.onerror = (event) => {
+		request.onerror = event => {
 			console.error(`Failed to execute queue operation: ${(event.target as IDBOpenDBRequest).error}`);
 		};
 	}
