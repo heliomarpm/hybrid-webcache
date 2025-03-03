@@ -11,7 +11,6 @@ import { MockBroadcastChannel } from './mocks/MockBroadcastChannel';
 
 import { HybridWebCache, StorageType } from '../src';
 
-
 interface IPerson {
 	name: string;
 	age: number;
@@ -34,8 +33,7 @@ describe('indexedDB Storage Strategy', () => {
 
 	afterAll(() => {
 		// indexedDB.deleteDatabase('HybridWebCacheTest');
-	}
-	);
+	});
 
 	it('test open indexedDB', async () => {
 		var request = indexedDB.open('test', 3);
@@ -253,7 +251,6 @@ describe('indexedDB Storage Strategy', () => {
 	// 	const r = hwc.getSync<number>('complex.properties.width');
 	// 	expect(r!.value).toEqual(20);
 	// });
-
 
 	// it('test has propertie', () => {
 	// 	expect(hwc.hasSync('complexSync')).toBeTruthy();

@@ -5,8 +5,8 @@ const complex = {
 	type: 'object',
 	properties: {
 		height: 20,
-		width: 20,
-	},
+		width: 20
+	}
 };
 
 interface IPerson {
@@ -16,12 +16,12 @@ interface IPerson {
 
 const person: IPerson = {
 	name: 'John Doe',
-	age: 30,
+	age: 30
 };
 
 const persons: IPerson[] = [
 	{ name: 'John Doe', age: 30 },
-	{ name: 'Jane Doe', age: 33 },
+	{ name: 'Jane Doe', age: 33 }
 ];
 
 describe('SessionStorage Strategy', () => {
@@ -39,10 +39,10 @@ describe('SessionStorage Strategy', () => {
 					key: (index: number) => Object.keys(store)[index] || null,
 					get length() {
 						return Object.keys(store).length;
-					},
+					}
 				};
 			})(),
-			writable: true,
+			writable: true
 		});
 
 		hwc.unsetSync();
@@ -65,7 +65,7 @@ describe('SessionStorage Strategy', () => {
 	});
 
 	it('should initialize with default options when no options provided', () => {
-		const cache = new HybridWebCache("sessionDB", { storage: StorageType.SessionStorage });
+		const cache = new HybridWebCache('sessionDB', { storage: StorageType.SessionStorage });
 
 		expect(cache.info.options).toEqual({
 			ttl: 3600000,
@@ -75,7 +75,6 @@ describe('SessionStorage Strategy', () => {
 
 		expect(cache.storageType).toBe(StorageType.SessionStorage);
 	});
-
 
 	it('should remove expired item when removeExpired is true', async () => {
 		const cache = new HybridWebCache('test', {
@@ -97,7 +96,7 @@ describe('SessionStorage Strategy', () => {
 
 	it('test set/get property string type', async () => {
 		await hwc.set('str', 'strValue');
-		expect((await hwc.has('str'))).toBeTruthy();
+		expect(await hwc.has('str')).toBeTruthy();
 		expect((await hwc.get('str'))!.value).toBe('strValue');
 	});
 	it('test setSync/getSync property string type', () => {
@@ -217,7 +216,7 @@ describe('SessionStorage Strategy', () => {
 			// remove expired cache
 			expect(await hwc.get('user', true)).toBeUndefined();
 		},
-		1 * 1000,
+		1 * 1000
 	); //1s
 
 	it('test setSync/getSync on ttl expired and not remove expired', () => {
@@ -234,7 +233,7 @@ describe('SessionStorage Strategy', () => {
 			// remove expired cache
 			expect(hwc.getSync('user', true)).toBeUndefined();
 		},
-		1 * 1000,
+		1 * 1000
 	); //1s
 
 	it('test resetWith property', async () => {

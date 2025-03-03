@@ -5,8 +5,8 @@ const complex = {
 	type: 'object',
 	properties: {
 		height: 20,
-		width: 20,
-	},
+		width: 20
+	}
 };
 
 interface IPerson {
@@ -16,12 +16,12 @@ interface IPerson {
 
 const person: IPerson = {
 	name: 'John Doe',
-	age: 30,
+	age: 30
 };
 
 const persons: IPerson[] = [
 	{ name: 'John Doe', age: 30 },
-	{ name: 'Jane Doe', age: 33 },
+	{ name: 'Jane Doe', age: 33 }
 ];
 
 describe('LocalStorage Strategy', () => {
@@ -39,10 +39,10 @@ describe('LocalStorage Strategy', () => {
 					key: (index: number) => Object.keys(store)[index] || null,
 					get length() {
 						return Object.keys(store).length;
-					},
+					}
 				};
 			})(),
-			writable: true,
+			writable: true
 		});
 
 		hwc.unsetSync();
@@ -76,7 +76,6 @@ describe('LocalStorage Strategy', () => {
 		expect(cache.storageType).toBe(StorageType.LocalStorage);
 	});
 
-
 	it('should remove expired item when removeExpired is true', async () => {
 		const cache = new HybridWebCache('test', {
 			ttl: { seconds: 1 },
@@ -97,7 +96,7 @@ describe('LocalStorage Strategy', () => {
 
 	it('test set/get property string type', async () => {
 		await hwc.set('str', 'strValue');
-		expect((await hwc.has('str'))).toBeTruthy();
+		expect(await hwc.has('str')).toBeTruthy();
 		expect((await hwc.get('str'))!.value).toBe('strValue');
 	});
 	it('test setSync/getSync property string type', () => {
@@ -109,7 +108,7 @@ describe('LocalStorage Strategy', () => {
 		await hwc.set('num', 1);
 		expect((await hwc.get('num'))!.value).toBe(1);
 	});
-	
+
 	it('test setSync/getSync property number type', () => {
 		hwc.setSync('numSync', 2);
 		expect(hwc.getSync('numSync')!.value).toBe(2);
@@ -178,7 +177,7 @@ describe('LocalStorage Strategy', () => {
 
 	it('test get remove expired (NestedProperties)', async () => {
 		//runner after 1 second
-		expect((await hwc.get('obj.sobreNome', false))!.value).toBe('Marques');	
+		expect((await hwc.get('obj.sobreNome', false))!.value).toBe('Marques');
 		expect(await hwc.get('obj.sobreNome', true)).toBeUndefined();
 	}, 1000);
 	it('test getSync remove expired (NestedProperties)', () => {
@@ -217,7 +216,7 @@ describe('LocalStorage Strategy', () => {
 			// remove expired cache
 			expect(await hwc.get('user', true)).toBeUndefined();
 		},
-		1 * 1000,
+		1 * 1000
 	); //1s
 
 	it('test setSync/getSync on ttl expired and not remove expired', () => {
@@ -234,7 +233,7 @@ describe('LocalStorage Strategy', () => {
 			// remove expired cache
 			expect(hwc.getSync('user', true)).toBeUndefined();
 		},
-		1 * 1000,
+		1 * 1000
 	); //1s
 
 	it('test resetWith property', async () => {
