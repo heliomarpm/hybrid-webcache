@@ -10,7 +10,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        - Read all our documentation, especially the [README](https://github.com/heliomarpm/dl-stream/blob/master/README.md). It may contain information that helps you solve your issue.
+        - Read all our documentation, especially the [README](https://github.com/heliomarpm/hybrid-webcache/blob/master/README.md). It may contain information that helps you solve your issue.
         - Ensure your issue isn't already [reported](https://github.com/heliomarpm/hybrid-webcache/issues?utf8=%E2%9C%93&q=is%3Aissue).
         - Ensure it isn't already fixed in the latest hybrid-webcache version.
   - type: markdown
