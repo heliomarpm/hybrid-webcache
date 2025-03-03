@@ -1,9 +1,10 @@
-.github
+.*
 src
-result_test
-tsconfig.json
-cmd
 docs
+node_modules
+test
+tests
+dist
+coverage
+tsconfig.*
 jest.config.js
-.editorconfig
-.prettierrc
