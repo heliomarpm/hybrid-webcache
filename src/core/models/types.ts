@@ -1,9 +1,9 @@
 export enum StorageType {
-	Auto,
-	LocalStorage,
-	IndexedDB,
-	SessionStorage,
-	Memory
+	Auto = 0,
+	LocalStorage = 1,
+	IndexedDB = 2,
+	SessionStorage = 3,
+	Memory = 4
 }
 
 export type ValueTypes = null | string | number | boolean | object | DictionaryType | ValueTypes[];

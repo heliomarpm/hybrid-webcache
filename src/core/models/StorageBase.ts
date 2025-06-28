@@ -1,4 +1,4 @@
-import { DataGetType, DataSetType, StorageType, ValueTypes } from './types';
+import type { DataGetType, DataSetType, StorageType, ValueTypes } from "./types";
 
 export interface StorageBase {
 	set<T extends ValueTypes>(key: string, data: DataSetType<T>): Promise<void>;

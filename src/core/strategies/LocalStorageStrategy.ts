@@ -1,9 +1,9 @@
-import { StorageBase, DataGetType, DataSetType, StorageType, ValueTypes } from '../models';
+import { StorageBase, DataGetType, DataSetType, StorageType, ValueTypes } from "../models";
 
 export class LocalStorageStrategy implements StorageBase {
 	private prefixKey: string;
 
-	constructor(prefixKey: string = 'HybridWebCache') {
+	constructor(prefixKey: string = "HybridWebCache") {
 		this.prefixKey = `${prefixKey.trim()}::`;
 	}
 
@@ -37,7 +37,7 @@ export class LocalStorageStrategy implements StorageBase {
 		for (let i = 0; i < localStorage.length; i++) {
 			const key = localStorage.key(i)!;
 			if (key.startsWith(this.prefixKey)) {
-				data.set(key.replace(this.prefixKey, ''), JSON.parse(localStorage.getItem(key)!));
+				data.set(key.replace(this.prefixKey, ""), JSON.parse(localStorage.getItem(key)!));
 			}
 		}
 

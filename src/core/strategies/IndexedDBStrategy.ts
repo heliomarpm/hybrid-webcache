@@ -1,17 +1,16 @@
-import { StorageBase, DataGetType, DataSetType, StorageType, ValueTypes } from '../models';
+import { StorageBase, DataGetType, DataSetType, StorageType, ValueTypes } from "../models";
 
 export class IndexedDBStrategy implements StorageBase {
 	private db: IDBDatabase | null = null;
 	private memoryCache: Map<string, any> = new Map();
-	private queue: Array<() => void> = [];
 
 	private baseName: string;
 	private storeName: string;
 
 	private channel: BroadcastChannel;
 
-	constructor(baseName: string = 'HybridWebCache', storeName?: string) {
-		this.baseName = baseName.trim().length === 0 ? 'HybridWebCache' : baseName.trim();
+	constructor(baseName: string = "HybridWebCache", storeName?: string) {
+		this.baseName = baseName.trim().length === 0 ? "HybridWebCache" : baseName.trim();
 		this.storeName = storeName?.trim() ?? this.baseName;
 
 		this.channel = new BroadcastChannel(this.storeName);
@@ -26,7 +25,7 @@ export class IndexedDBStrategy implements StorageBase {
 
 	private handleSyncEvent(event: MessageEvent): void {
 		// Handle sync events for multi-instance communication
-		if (event.data?.action === 'sync') {
+		if (event.data?.action === "sync") {
 			const { key, value } = event.data;
 			if (value === null) {
 				this.memoryCache.delete(key);
@@ -41,7 +40,7 @@ export class IndexedDBStrategy implements StorageBase {
 
 		if (!this.db) return;
 
-		const transaction = this.db.transaction(this.storeName, 'readonly');
+		const transaction = this.db.transaction(this.storeName, "readonly");
 		const store = transaction.objectStore(this.storeName);
 
 		store.getAll().onsuccess = event => {
@@ -69,7 +68,7 @@ export class IndexedDBStrategy implements StorageBase {
 			request.onupgradeneeded = event => {
 				const db = (event.target as IDBOpenDBRequest).result;
 				if (!db.objectStoreNames.contains(this.storeName)) {
-					db.createObjectStore(this.storeName, { keyPath: 'key' });
+					db.createObjectStore(this.storeName, { keyPath: "key" });
 				}
 			};
 
@@ -97,7 +96,7 @@ export class IndexedDBStrategy implements StorageBase {
 
 		return new Promise((resolve, reject) => {
 			request.onsuccess = () => {
-				resolve(transactionMode === 'readonly' ? request.result : undefined);
+				resolve(transactionMode === "readonly" ? request.result : undefined);
 			};
 			request.onerror = () => reject(request.error);
 		});
@@ -125,18 +124,18 @@ export class IndexedDBStrategy implements StorageBase {
 	async set<T extends ValueTypes>(key: string, data: DataSetType<T>): Promise<void> {
 		const start = Date.now();
 
-		await this.execute('readwrite', store => store.put({ id: key, ...data }));
+		await this.execute("readwrite", store => store.put({ id: key, ...data }));
 		this.memoryCache.set(key, data);
-		this.channel.postMessage({ action: 'sync', key, value: data });
+		this.channel.postMessage({ action: "sync", key, value: data });
 
-		this.logPerformance('set', start);
+		this.logPerformance("set", start);
 	}
 
 	setSync<T extends ValueTypes>(key: string, data: DataSetType<T>): void {
 		this.memoryCache.set(key, data);
-		this.channel.postMessage({ action: 'sync', key, value: data });
+		this.channel.postMessage({ action: "sync", key, value: data });
 
-		this.executeQueue('readwrite', store => store.put({ id: key, ...data }));
+		this.executeQueue("readwrite", store => store.put({ id: key, ...data }));
 	}
 
 	async get<T extends ValueTypes>(key: string): Promise<DataGetType<T> | undefined> {
@@ -145,11 +144,11 @@ export class IndexedDBStrategy implements StorageBase {
 		}
 
 		const start = Date.now();
-		const data = await this.execute('readonly', store => store.get(key));
+		const data = await this.execute("readonly", store => store.get(key));
 		if (data) {
 			this.memoryCache.set(key, data); // Atualiza a memória
 		}
-		this.logPerformance('get', start);
+		this.logPerformance("get", start);
 
 		return data;
 	}
@@ -162,7 +161,7 @@ export class IndexedDBStrategy implements StorageBase {
 
 	async getAll(): Promise<Map<string, DataGetType<unknown>> | null> {
 		const result = new Map<string, DataGetType<unknown>>();
-		await this.execute('readonly', store => {
+		await this.execute("readonly", store => {
 			const request = store.openCursor();
 			request.onsuccess = event => {
 				const cursor = (event.target as IDBRequest<IDBCursorWithValue>).result;
@@ -193,25 +192,25 @@ export class IndexedDBStrategy implements StorageBase {
 	unset(key?: string): Promise<boolean> {
 		if (key) {
 			this.memoryCache.delete(key);
-			return this.execute('readwrite', store => store.delete(key));
+			return this.execute("readwrite", store => store.delete(key));
 		}
 
 		this.memoryCache.clear();
-		return this.execute('readwrite', store => store.clear());
+		return this.execute("readwrite", store => store.clear());
 	}
 
 	unsetSync(key?: string): boolean {
 		if (key) {
 			this.memoryCache.delete(key);
 
-			this.channel.postMessage({ action: 'sync', key, value: null });
-			return this.executeQueue('readwrite', store => store.delete(key)) !== undefined;
+			this.channel.postMessage({ action: "sync", key, value: null });
+			return this.executeQueue("readwrite", store => store.delete(key)) !== undefined;
 		}
 
 		this.memoryCache.clear();
 
-		this.channel.postMessage({ action: 'sync', key, value: null });
-		return this.executeQueue('readwrite', store => store.clear()) !== undefined;
+		this.channel.postMessage({ action: "sync", key, value: null });
+		return this.executeQueue("readwrite", store => store.clear()) !== undefined;
 	}
 
 	get length(): number {

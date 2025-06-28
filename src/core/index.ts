@@ -1,2 +1,2 @@
-export { StorageBase, StorageType } from './models';
-export * from './HybridWebCache';
+export { StorageBase, StorageType } from "./models";
+export * from "./HybridWebCache";

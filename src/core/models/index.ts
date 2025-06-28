@@ -1,2 +1,2 @@
-export * from './StorageBase';
-export * from './types';
+export * from "./StorageBase";
+export * from "./types";

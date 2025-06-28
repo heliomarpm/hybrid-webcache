@@ -1,9 +1,9 @@
-import { StorageBase, DataGetType, DataSetType, StorageType, ValueTypes } from '../models';
+import { StorageBase, DataGetType, DataSetType, StorageType, ValueTypes } from "../models";
 
 export class SessionStorageStrategy implements StorageBase {
 	private prefixKey: string;
 
-	constructor(prefixKey: string = 'HybridWebCache') {
+	constructor(prefixKey: string = "HybridWebCache") {
 		this.prefixKey = `${prefixKey.trim()}::`;
 	}
 
@@ -37,7 +37,7 @@ export class SessionStorageStrategy implements StorageBase {
 		for (let i = 0; i < sessionStorage.length; i++) {
 			const key = sessionStorage.key(i)!;
 			if (key.startsWith(this.prefixKey)) {
-				data.set(key.replace(this.prefixKey, ''), JSON.parse(sessionStorage.getItem(key)!));
+				data.set(key.replace(this.prefixKey, ""), JSON.parse(sessionStorage.getItem(key)!));
 			}
 		}
 

@@ -1,8 +1,8 @@
-import { get as _get, set as _set, unset as _unset } from 'lodash';
+import { get as _get, set as _set, unset as _unset } from "lodash";
 
-import { StorageBase, DataGetType, DataSetType, KeyPath, KeyValues, OptionsType, StorageType, TTLType, ValueTypes } from './models';
-import { StorageFactory } from './StorageFactory';
-import { Utils } from './utils';
+import { StorageBase, DataGetType, DataSetType, KeyPath, KeyValues, OptionsType, StorageType, TTLType, ValueTypes } from "./models";
+import { StorageFactory } from "./StorageFactory";
+import { Utils } from "./utils";
 
 const defaultOptions: OptionsType = {
 	ttl: { seconds: 0, minutes: 0, hours: 1, days: 0 },
@@ -31,7 +31,7 @@ export class HybridWebCache {
 	 * }
 	 * ```
 	 */
-	constructor(baseName: string = 'HybridWebCache', options?: Partial<OptionsType>) {
+	constructor(baseName: string = "HybridWebCache", options?: Partial<OptionsType>) {
 		this.baseName = baseName;
 		this.options = { ...defaultOptions, ...options };
 

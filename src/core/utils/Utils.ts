@@ -1,4 +1,4 @@
-import { KeyPath, TTLType } from '../models';
+import { KeyPath, TTLType } from "../models";
 
 export class Utils {
 	static getKey(keyPath: KeyPath): string {
@@ -7,7 +7,7 @@ export class Utils {
 		// Verificar se keyPath é um array
 		if (Array.isArray(keyPath)) {
 			// Retorna a primeira chave do array (ex: ["keyName", "subKey"] -> "keyName")
-			key = keyPath.length > 0 ? String(keyPath[0]) : '';
+			key = keyPath.length > 0 ? String(keyPath[0]) : "";
 		} else {
 			// Verificar se é uma string com formato de indexação (ex: "keyName[0].name")
 			const match = keyPath.match(/^[^.[\]]+/);
@@ -22,7 +22,7 @@ export class Utils {
 	}
 
 	static convertTTLToMilliseconds(ttl: TTLType): number {
-		if (typeof ttl === 'number') return ttl;
+		if (typeof ttl === "number") return ttl;
 
 		const s = (ttl.seconds || 0) * 1000;
 		const m = (ttl.minutes || 0) * 60 * 1000;
@@ -38,7 +38,7 @@ export class Utils {
 
 	static isSessionStorageAvailable(): boolean {
 		try {
-			const testKey = '__test__';
+			const testKey = "__test__";
 			sessionStorage.setItem(testKey, testKey);
 			sessionStorage.removeItem(testKey);
 			return true;
@@ -49,7 +49,7 @@ export class Utils {
 
 	static isLocalStorageAvailable(): boolean {
 		try {
-			const testKey = '__test__';
+			const testKey = "__test__";
 			localStorage.setItem(testKey, testKey);
 			localStorage.removeItem(testKey);
 			return true;
@@ -59,7 +59,7 @@ export class Utils {
 	}
 	static isIndexedDBAvailable(): boolean {
 		try {
-			return 'indexedDB' in window;
+			return "indexedDB" in window;
 		} catch (e) {
 			return false;
 		}
@@ -67,9 +67,9 @@ export class Utils {
 
 	static calculateStorageSize(bytes: number): string {
 		const BYTES_PER_KB = 1024;
-		const UNITS = ['b', 'kb', 'mb', 'gb'];
+		const UNITS = ["b", "kb", "mb", "gb"];
 
-		if (bytes <= 0) return '0b';
+		if (bytes <= 0) return "0b";
 		if (bytes < BYTES_PER_KB) return `${bytes}b`;
 
 		const i = Math.floor(Math.log(bytes) / Math.log(1024));
