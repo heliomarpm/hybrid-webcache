@@ -1,28 +1,28 @@
-import type { DataGetType, DataSetType, StorageBase, ValueTypes } from "../models";
+import type { DataGet, DataSet, StorageBase, ValueType } from "../models";
 import { StorageType } from "../models";
 
 export class MemoryStrategy implements StorageBase {
-	private storage: Map<string, DataSetType<ValueTypes> | DataGetType<ValueTypes>> = new Map();
+	private storage: Map<string, DataSet<ValueType> | DataGet<ValueType>> = new Map();
 
-	set<T extends ValueTypes>(key: string, data: DataSetType<T>): Promise<void> {
+	set<T extends ValueType>(key: string, data: DataSet<T>): Promise<void> {
 		return Promise.resolve(this.setSync(key, data));
 	}
-	setSync<T extends ValueTypes>(key: string, data: DataSetType<T>): void {
+	setSync<T extends ValueType>(key: string, data: DataSet<T>): void {
 		this.storage.set(key, data);
 	}
 
-	get<T extends ValueTypes>(key: string): Promise<DataGetType<T> | undefined> {
+	get<T extends ValueType>(key: string): Promise<DataGet<T> | undefined> {
 		return Promise.resolve(this.getSync(key));
 	}
-	getSync<T extends ValueTypes>(key: string): DataGetType<T> | undefined {
-		return this.storage.get(key) as DataGetType<T> | undefined;
+	getSync<T extends ValueType>(key: string): DataGet<T> | undefined {
+		return this.storage.get(key) as DataGet<T> | undefined;
 	}
 
-	getAll<T extends ValueTypes>(): Promise<Map<string, DataGetType<T>> | null> {
+	getAll<T extends ValueType>(): Promise<Map<string, DataGet<T>> | null> {
 		return Promise.resolve(this.getAllSync<T>());
 	}
-	getAllSync<T extends ValueTypes>(): Map<string, DataGetType<T>> | null {
-		return this.storage.size > 0 ? (this.storage as Map<string, DataGetType<T>>) : null;
+	getAllSync<T extends ValueType>(): Map<string, DataGet<T>> | null {
+		return this.storage.size > 0 ? (this.storage as Map<string, DataGet<T>>) : null;
 	}
 
 	has(key: string): Promise<boolean> {

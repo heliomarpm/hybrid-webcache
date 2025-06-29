@@ -6,25 +6,25 @@ export enum StorageType {
 	Memory = 4,
 }
 
-export type ValueTypes = null | string | number | boolean | object | DictionaryType | ValueTypes[];
-type DictionaryType = { [key: string]: ValueTypes };
+export type ValueType = null | string | number | boolean | object | DictionaryType | ValueType[];
+type DictionaryType = { [key: string]: ValueType };
 
-export type KeyValues<T extends ValueTypes> = Record<string, T>;
+export type KeyValues<T extends ValueType> = Record<string, T>;
 export type KeyPath = string | Array<string>;
 
-export type TTLType = number | { seconds?: number; minutes?: number; hours?: number; days?: number };
+export type TTL = number | { seconds?: number; minutes?: number; hours?: number; days?: number };
 
-export type OptionsType = {
+export type Options = {
 	storage: StorageType;
-	ttl: Partial<TTLType>;
+	ttl: Partial<TTL>;
 	removeExpired: boolean;
 };
 
-export interface DataSetType<T> {
+export interface DataSet<T> {
 	value: T;
 	expiresAt: number;
 }
 
-export interface DataGetType<T> extends DataSetType<T> {
+export interface DataGet<T> extends DataSet<T> {
 	isExpired: boolean;
 }

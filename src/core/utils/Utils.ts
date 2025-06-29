@@ -1,4 +1,4 @@
-import type { KeyPath, TTLType } from "../models";
+import type { KeyPath, TTL } from "../models";
 
 export const Utils = {
 	/**
@@ -41,7 +41,7 @@ export const Utils = {
 	 * @param ttl - The TTL to convert.
 	 * @returns The TTL converted to milliseconds.
 	 */
-	convertTTLToMilliseconds(ttl: TTLType): number {
+	convertTTLToMilliseconds(ttl: TTL): number {
 		if (typeof ttl === "number") return ttl;
 
 		const s = (ttl.seconds || 0) * 1000;

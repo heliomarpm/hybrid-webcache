@@ -1,10 +1,10 @@
 import { get as _get, set as _set, unset as _unset } from "lodash";
 
-import { type DataGetType, type DataSetType, type KeyPath, type KeyValues, type OptionsType, type StorageBase, StorageType, type TTLType, type ValueTypes } from "./models";
+import { type DataGet, type DataSet, type KeyPath, type KeyValues, type Options, type StorageBase, StorageType, type TTL, type ValueType } from "./models";
 import { StorageFactory } from "./StorageFactory";
 import { Utils } from "./utils";
 
-const defaultOptions: OptionsType = {
+const defaultOptions: Options = {
 	ttl: { seconds: 0, minutes: 0, hours: 1, days: 0 },
 	removeExpired: true,
 	storage: StorageType.Auto,
@@ -12,7 +12,7 @@ const defaultOptions: OptionsType = {
 
 export class HybridWebCache {
 	private baseName: string;
-	private options: OptionsType;
+	private options: Options;
 	private storageEngine: StorageBase;
 
 	/**
@@ -20,7 +20,7 @@ export class HybridWebCache {
 	 * To reset the cache, use [resetWith()|resetWithSync()].
 	 *
 	 * @param {string} [baseName='HybridWebCache'] - The base name of the cache.
-	 * @param {Partial<OptionsType>} [options] - The options for the cache.
+	 * @param {Partial<Options>} [options] - The options for the cache.
 	 *
 	 * Default Options:
 	 * ```js
@@ -31,7 +31,7 @@ export class HybridWebCache {
 	 * }
 	 * ```
 	 */
-	constructor(baseName = "HybridWebCache", options?: Partial<OptionsType>) {
+	constructor(baseName = "HybridWebCache", options?: Partial<Options>) {
 		this.baseName = baseName;
 		this.options = { ...defaultOptions, ...options };
 
@@ -47,10 +47,10 @@ export class HybridWebCache {
 		return Utils.getKey(keyPath);
 	}
 
-	private prepareDataSet<T extends ValueTypes>(value: T, ttl: Partial<TTLType> = this.options.ttl) {
+	private prepareDataSet<T extends ValueType>(value: T, ttl: Partial<TTL> = this.options.ttl) {
 		const ttlMs = Utils.convertTTLToMilliseconds(ttl);
 		const expiresAt = ttlMs > 0 ? Date.now() + ttlMs : 0;
-		const data: DataSetType<T> = { value, expiresAt };
+		const data: DataSet<T> = { value, expiresAt };
 
 		return { data };
 	}
@@ -68,7 +68,7 @@ export class HybridWebCache {
 	 * @param ttl - Optional TTL settings for the stored value. Defaults to
 	 *              the instance's configured TTL.
 	 */
-	async set<T extends ValueTypes>(keyPath: KeyPath, value: T, ttl: Partial<TTLType> = this.options.ttl): Promise<void> {
+	async set<T extends ValueType>(keyPath: KeyPath, value: T, ttl: Partial<TTL> = this.options.ttl): Promise<void> {
 		if (keyPath === undefined || keyPath === null) {
 			throw new Error("KeyPath cannot be undefined or null.");
 		}
@@ -93,7 +93,7 @@ export class HybridWebCache {
 	 * @param ttl - Optional TTL settings for the stored value. Defaults to
 	 *              the instance's configured TTL.
 	 */
-	setSync<T extends ValueTypes>(keyPath: KeyPath, value: T, ttl: Partial<TTLType> = this.options.ttl): void {
+	setSync<T extends ValueType>(keyPath: KeyPath, value: T, ttl: Partial<TTL> = this.options.ttl): void {
 		if (keyPath === undefined || keyPath === null) {
 			throw new Error("KeyPath cannot be undefined or null.");
 		}
@@ -124,7 +124,7 @@ export class HybridWebCache {
 	 * @returns A promise that resolves to an object containing the value and its metadata,
 	 *          or `undefined` if the value does not exist or is expired and removed.
 	 */
-	async get<T extends ValueTypes>(keyPath: KeyPath, removeExpired: boolean = this.options.removeExpired): Promise<DataGetType<T> | undefined> {
+	async get<T extends ValueType>(keyPath: KeyPath, removeExpired: boolean = this.options.removeExpired): Promise<DataGet<T> | undefined> {
 		if (keyPath === undefined || keyPath === null) {
 			throw new Error("KeyPath cannot be undefined or null.");
 		}
@@ -149,7 +149,7 @@ export class HybridWebCache {
 				value,
 				expiresAt: data.expiresAt,
 				isExpired: data.isExpired,
-			} as DataGetType<T>;
+			} as DataGet<T>;
 		}
 
 		return;
@@ -172,7 +172,7 @@ export class HybridWebCache {
 	 * @returns An object containing the value and its metadata, or `undefined` if the
 	 *          value does not exist or is expired and removed.
 	 */
-	getSync<T extends ValueTypes>(keyPath: KeyPath, removeExpired: boolean = this.options.removeExpired): DataGetType<T> | undefined {
+	getSync<T extends ValueType>(keyPath: KeyPath, removeExpired: boolean = this.options.removeExpired): DataGet<T> | undefined {
 		if (keyPath === undefined || keyPath === null) {
 			throw new Error("KeyPath cannot be undefined or null.");
 		}
@@ -197,7 +197,7 @@ export class HybridWebCache {
 				value,
 				expiresAt: data.expiresAt,
 				isExpired: data.isExpired,
-			} as DataGetType<T>;
+			} as DataGet<T>;
 		}
 
 		return;
@@ -215,13 +215,13 @@ export class HybridWebCache {
 	 *          expiration time, and expiration status. If no values are found or if all values
 	 *          are expired and removed, `null` is returned.
 	 */
-	async getAll<T extends ValueTypes>(removeExpired: boolean = this.options.removeExpired): Promise<Map<string, DataGetType<T>> | null> {
+	async getAll<T extends ValueType>(removeExpired: boolean = this.options.removeExpired): Promise<Map<string, DataGet<T>> | null> {
 		const allItems = await this.storageEngine.getAll();
 		if (!allItems) {
 			return null;
 		}
 
-		const result: Map<string, DataGetType<T>> = new Map();
+		const result: Map<string, DataGet<T>> = new Map();
 
 		for (const [key, data] of allItems) {
 			const [iKey, iValue] = Object.entries(data.value ?? { key, value: null })[0];
@@ -258,13 +258,13 @@ export class HybridWebCache {
 	 *          expiration time, and expiration status. If no values are found or if all values
 	 *          are expired and removed, `null` is returned.
 	 */
-	getAllSync<T extends ValueTypes>(removeExpired: boolean = this.options.removeExpired): Map<string, DataGetType<T>> | null {
+	getAllSync<T extends ValueType>(removeExpired: boolean = this.options.removeExpired): Map<string, DataGet<T>> | null {
 		const allItems = this.storageEngine.getAllSync();
 		if (!allItems) {
 			return null;
 		}
 
-		const result: Map<string, DataGetType<T>> = new Map();
+		const result: Map<string, DataGet<T>> = new Map();
 
 		for (const [key, data] of allItems) {
 			const [iKey, iValue] = data.value ? Object.entries(data.value)[0] : [key, null];
@@ -300,8 +300,8 @@ export class HybridWebCache {
 	 * @returns A promise that resolves to a JSON object containing all key-value pairs.
 	 *          If no items are found or all items are expired and removed, `null` is returned.
 	 */
-	async getJson(removeExpired: boolean = this.options.removeExpired): Promise<Record<string, ValueTypes> | null> {
-		const allValues: Record<string, ValueTypes> = {};
+	async getJson(removeExpired: boolean = this.options.removeExpired): Promise<Record<string, ValueType> | null> {
+		const allValues: Record<string, ValueType> = {};
 		const allItems = await this.getAll(removeExpired);
 
 		if (!allItems) {
@@ -329,8 +329,8 @@ export class HybridWebCache {
 	 * @returns A JSON object containing all key-value pairs. If no items are found or all
 	 *          items are expired and removed, `null` is returned.
 	 */
-	getJsonSync(removeExpired: boolean = this.options.removeExpired): Record<string, ValueTypes> | null {
-		const allValues: Record<string, ValueTypes> = {};
+	getJsonSync(removeExpired: boolean = this.options.removeExpired): Record<string, ValueType> | null {
+		const allValues: Record<string, ValueType> = {};
 		const allItems = this.getAllSync(removeExpired);
 
 		if (!allItems) {
@@ -569,7 +569,7 @@ export class HybridWebCache {
 	 * @returns A promise that resolves when all key-value pairs have been
 	 *          set in the storage.
 	 */
-	async resetWith<T extends ValueTypes>(keyValues: KeyValues<T>, ttl: Partial<TTLType> = this.options.ttl): Promise<void> {
+	async resetWith<T extends ValueType>(keyValues: KeyValues<T>, ttl: Partial<TTL> = this.options.ttl): Promise<void> {
 		await this.storageEngine.unset();
 
 		const promises = Object.entries(keyValues).map(([key, value]) => {
@@ -597,7 +597,7 @@ export class HybridWebCache {
 	 * @param ttl - Optional TTL settings for the stored values. Defaults to
 	 *              the instance's configured TTL.
 	 */
-	resetWithSync<T extends ValueTypes>(keyValues: KeyValues<T>, ttl: Partial<TTLType> = this.options.ttl): void {
+	resetWithSync<T extends ValueType>(keyValues: KeyValues<T>, ttl: Partial<TTL> = this.options.ttl): void {
 		this.storageEngine.unsetSync();
 
 		Object.entries(keyValues).forEach(([key, value]) => {
@@ -636,7 +636,7 @@ export class HybridWebCache {
 	 *          - `size`: The total number of bytes used by the cache in the storage.
 	 *          - `options`: The options used to create the cache, including the TTL in milliseconds.
 	 */
-	get info(): { dataBase: string; size: string; options: OptionsType } {
+	get info(): { dataBase: string; size: string; options: Options } {
 		const size = Utils.calculateStorageSize(this.storageEngine.bytes);
 		return {
 			dataBase: this.baseName,

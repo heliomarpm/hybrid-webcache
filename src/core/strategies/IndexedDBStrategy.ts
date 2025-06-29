@@ -1,9 +1,9 @@
-import type { DataGetType, DataSetType, StorageBase, ValueTypes } from "../models";
+import type { DataGet, DataSet, StorageBase, ValueType } from "../models";
 import { StorageType } from "../models";
 
 export class IndexedDBStrategy implements StorageBase {
 	private db: IDBDatabase | null = null;
-	private memoryCache: Map<string, DataSetType<ValueTypes> | DataGetType<ValueTypes>> = new Map();
+	private memoryCache: Map<string, DataSet<ValueType> | DataGet<ValueType>> = new Map();
 
 	private baseName: string;
 	private storeName: string;
@@ -88,7 +88,7 @@ export class IndexedDBStrategy implements StorageBase {
 		});
 	}
 
-	private async execute<T extends ValueTypes>(transactionMode: IDBTransactionMode, operation: (store: IDBObjectStore) => IDBRequest): Promise<T> {
+	private async execute<T extends ValueType>(transactionMode: IDBTransactionMode, operation: (store: IDBObjectStore) => IDBRequest): Promise<T> {
 		if (!this.db) await this.openDB();
 		if (!this.db) throw new Error("Database not initialized");
 
@@ -121,40 +121,40 @@ export class IndexedDBStrategy implements StorageBase {
 		};
 	}
 
-	async set<T extends ValueTypes>(key: string, data: DataSetType<T>): Promise<void> {
+	async set<T extends ValueType>(key: string, data: DataSet<T>): Promise<void> {
 		await this.execute("readwrite", (store) => store.put({ key, ...data }));
 		this.memoryCache.set(key, data);
 		this.channel.postMessage({ action: "sync", key, value: data });
 	}
 
-	setSync<T extends ValueTypes>(key: string, data: DataSetType<T>): void {
+	setSync<T extends ValueType>(key: string, data: DataSet<T>): void {
 		this.memoryCache.set(key, data);
 		this.channel.postMessage({ action: "sync", key, value: data });
 
 		this.executeQueue("readwrite", (store) => store.put({ key, ...data }));
 	}
 
-	async get<T extends ValueTypes>(key: string): Promise<DataGetType<T> | undefined> {
+	async get<T extends ValueType>(key: string): Promise<DataGet<T> | undefined> {
 		if (this.memoryCache.has(key)) {
-			return this.memoryCache.get(key) as DataGetType<T>;
+			return this.memoryCache.get(key) as DataGet<T>;
 		}
 
 		const data = await this.execute("readonly", (store) => store.get(key));
 		if (data) {
-			this.memoryCache.set(key, data as DataSetType<T>); // Atualiza a memória
+			this.memoryCache.set(key, data as DataSet<T>); // Atualiza a memória
 		}
 
-		return data as DataGetType<T>;
+		return data as DataGet<T>;
 	}
 
-	getSync<T extends ValueTypes>(key: string): DataGetType<T> | undefined {
+	getSync<T extends ValueType>(key: string): DataGet<T> | undefined {
 		if (this.memoryCache.has(key)) {
 			return this.memoryCache.get(key);
 		}
 	}
 
-	async getAll<T extends ValueTypes>(): Promise<Map<string, DataGetType<T>> | null> {
-		const result = new Map<string, DataGetType<T>>();
+	async getAll<T extends ValueType>(): Promise<Map<string, DataGet<T>> | null> {
+		const result = new Map<string, DataGet<T>>();
 		await this.execute("readonly", (store) => {
 			const request = store.openCursor();
 			request.onsuccess = (event) => {
@@ -169,7 +169,7 @@ export class IndexedDBStrategy implements StorageBase {
 		return result.size > 0 ? result : null;
 	}
 
-	getAllSync<T extends ValueTypes>(): Map<string, DataGetType<T>> | null {
+	getAllSync<T extends ValueType>(): Map<string, DataGet<T>> | null {
 		return this.memoryCache.size > 0 ? new Map(this.memoryCache) : null;
 	}
 	async has(key: string): Promise<boolean> {
