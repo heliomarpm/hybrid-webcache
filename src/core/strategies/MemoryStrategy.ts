@@ -1,7 +1,8 @@
-import { StorageBase, DataGetType, DataSetType, StorageType, ValueTypes } from "../models";
+import type { DataGetType, DataSetType, StorageBase, ValueTypes } from "../models";
+import { StorageType } from "../models";
 
 export class MemoryStrategy implements StorageBase {
-	private storage: Map<string, any> = new Map();
+	private storage: Map<string, DataSetType<ValueTypes> | DataGetType<ValueTypes>> = new Map();
 
 	set<T extends ValueTypes>(key: string, data: DataSetType<T>): Promise<void> {
 		return Promise.resolve(this.setSync(key, data));
@@ -14,7 +15,7 @@ export class MemoryStrategy implements StorageBase {
 		return Promise.resolve(this.getSync(key));
 	}
 	getSync<T extends ValueTypes>(key: string): DataGetType<T> | undefined {
-		return this.storage.get(key);
+		return this.storage.get(key) as DataGetType<T> | undefined;
 	}
 
 	getAll<T extends ValueTypes>(): Promise<Map<string, DataGetType<T>> | null> {
@@ -36,14 +37,15 @@ export class MemoryStrategy implements StorageBase {
 	}
 
 	unsetSync(key?: string): boolean {
+		if (this.storage.size === 0) return false;
+
 		if (!key) {
 			if (this.storage.size > 0) {
 				this.storage.clear();
 			}
 			return this.storage.size === 0;
-		} else {
-			return this.storage.delete(key);
 		}
+		return this.storage.delete(key);
 	}
 
 	get length(): number {
@@ -57,8 +59,10 @@ export class MemoryStrategy implements StorageBase {
 		// return new TextEncoder().encode(jsonString).length;
 		let totalBytes = 0;
 		for (const [key, value] of this.storage) {
-			totalBytes += new Blob([key]).size;
-			totalBytes += new Blob([JSON.stringify(value)]).size;
+			// totalBytes += new Blob([key]).size;
+			// totalBytes += new Blob([JSON.stringify(value)]).size;
+			totalBytes += new TextEncoder().encode(key).length;
+			totalBytes += new TextEncoder().encode(JSON.stringify(value)).length;
 		}
 		return totalBytes;
 	}

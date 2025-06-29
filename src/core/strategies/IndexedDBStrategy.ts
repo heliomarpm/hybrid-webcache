@@ -1,15 +1,16 @@
-import { StorageBase, DataGetType, DataSetType, StorageType, ValueTypes } from "../models";
+import type { DataGetType, DataSetType, StorageBase, ValueTypes } from "../models";
+import { StorageType } from "../models";
 
 export class IndexedDBStrategy implements StorageBase {
 	private db: IDBDatabase | null = null;
-	private memoryCache: Map<string, any> = new Map();
+	private memoryCache: Map<string, DataSetType<ValueTypes> | DataGetType<ValueTypes>> = new Map();
 
 	private baseName: string;
 	private storeName: string;
 
 	private channel: BroadcastChannel;
 
-	constructor(baseName: string = "HybridWebCache", storeName?: string) {
+	constructor(baseName = "HybridWebCache", storeName?: string) {
 		this.baseName = baseName.trim().length === 0 ? "HybridWebCache" : baseName.trim();
 		this.storeName = storeName?.trim() ?? this.baseName;
 
@@ -81,20 +82,21 @@ export class IndexedDBStrategy implements StorageBase {
 			};
 
 			request.onerror = (event) => {
-				console.error(`Failed to open IndexedDB: ${(event.target as IDBOpenDBRequest).error}`);
+				// console.error(`Failed to open IndexedDB: ${(event.target as IDBOpenDBRequest).error}`);
 				reject((event.target as IDBOpenDBRequest).error);
 			};
 		});
 	}
 
-	private async execute(transactionMode: IDBTransactionMode, operation: (store: IDBObjectStore) => IDBRequest): Promise<any> {
+	private async execute<T extends ValueTypes>(transactionMode: IDBTransactionMode, operation: (store: IDBObjectStore) => IDBRequest): Promise<T> {
 		if (!this.db) await this.openDB();
+		if (!this.db) throw new Error("Database not initialized");
 
-		const transaction = this.db!.transaction(this.storeName, transactionMode);
+		const transaction = this.db.transaction(this.storeName, transactionMode);
 		const store = transaction.objectStore(this.storeName);
 		const request = operation(store);
 
-		return new Promise((resolve, reject) => {
+		return new Promise<T>((resolve, reject) => {
 			request.onsuccess = () => {
 				resolve(transactionMode === "readonly" ? request.result : undefined);
 			};
@@ -102,55 +104,47 @@ export class IndexedDBStrategy implements StorageBase {
 		});
 	}
 
-	private executeQueue(transactionMode: IDBTransactionMode, operation: (store: IDBObjectStore) => IDBRequest): any {
+	private executeQueue(transactionMode: IDBTransactionMode, operation: (store: IDBObjectStore) => IDBRequest) {
 		const request = indexedDB.open(this.baseName, 1);
 
 		request.onsuccess = () => {
 			const db = request.result;
 			const transaction = db.transaction(this.storeName, transactionMode);
 			const store = transaction.objectStore(this.storeName);
+
 			return operation(store);
 		};
 
 		request.onerror = (event) => {
-			console.error(`Failed to execute queue operation: ${(event.target as IDBOpenDBRequest).error}`);
+			// console.error(`Failed to execute queue operation: ${(event.target as IDBOpenDBRequest).error}`);
+			throw new Error(`Failed to execute queue operation: ${(event.target as IDBOpenDBRequest).error}`);
 		};
 	}
 
-	private logPerformance(methodName: string, start: number) {
-		console.log(`[Performance] ${methodName} executed in ${Date.now() - start}ms`);
-	}
-
 	async set<T extends ValueTypes>(key: string, data: DataSetType<T>): Promise<void> {
-		const start = Date.now();
-
-		await this.execute("readwrite", (store) => store.put({ id: key, ...data }));
+		await this.execute("readwrite", (store) => store.put({ key, ...data }));
 		this.memoryCache.set(key, data);
 		this.channel.postMessage({ action: "sync", key, value: data });
-
-		this.logPerformance("set", start);
 	}
 
 	setSync<T extends ValueTypes>(key: string, data: DataSetType<T>): void {
 		this.memoryCache.set(key, data);
 		this.channel.postMessage({ action: "sync", key, value: data });
 
-		this.executeQueue("readwrite", (store) => store.put({ id: key, ...data }));
+		this.executeQueue("readwrite", (store) => store.put({ key, ...data }));
 	}
 
 	async get<T extends ValueTypes>(key: string): Promise<DataGetType<T> | undefined> {
 		if (this.memoryCache.has(key)) {
-			return this.memoryCache.get(key);
+			return this.memoryCache.get(key) as DataGetType<T>;
 		}
 
-		const start = Date.now();
 		const data = await this.execute("readonly", (store) => store.get(key));
 		if (data) {
-			this.memoryCache.set(key, data); // Atualiza a memória
+			this.memoryCache.set(key, data as DataSetType<T>); // Atualiza a memória
 		}
-		this.logPerformance("get", start);
 
-		return data;
+		return data as DataGetType<T>;
 	}
 
 	getSync<T extends ValueTypes>(key: string): DataGetType<T> | undefined {
@@ -200,17 +194,21 @@ export class IndexedDBStrategy implements StorageBase {
 	}
 
 	unsetSync(key?: string): boolean {
-		if (key) {
-			this.memoryCache.delete(key);
+		if (this.memoryCache.size === 0) return false;
 
-			this.channel.postMessage({ action: "sync", key, value: null });
-			return this.executeQueue("readwrite", (store) => store.delete(key)) !== undefined;
+		if (key) {
+			if (this.memoryCache.delete(key)) {
+				this.channel.postMessage({ action: "sync", key, value: null });
+				this.executeQueue("readwrite", (store) => store.delete(key));
+				return true;
+			}
 		}
 
 		this.memoryCache.clear();
 
 		this.channel.postMessage({ action: "sync", key, value: null });
-		return this.executeQueue("readwrite", (store) => store.clear()) !== undefined;
+		this.executeQueue("readwrite", (store) => store.clear());
+		return true;
 	}
 
 	get length(): number {

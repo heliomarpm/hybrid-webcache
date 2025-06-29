@@ -32,14 +32,14 @@ export const Utils = {
 	},
 
 	/**
-	 * Converts a TTLType to milliseconds.
+	 * Converts a TTL to milliseconds.
 	 *
-	 * If the TTLType is a number, it is returned as is.
-	 * If the TTLType is an object, the method sums up the milliseconds from the
+	 * If the TTL is a number, it is returned as is.
+	 * If the TTL is an object, the method sums up the milliseconds from the
 	 * following properties: seconds, minutes, hours, and days.
 	 *
-	 * @param ttl - The TTLType to convert.
-	 * @returns The TTLType converted to milliseconds.
+	 * @param ttl - The TTL to convert.
+	 * @returns The TTL converted to milliseconds.
 	 */
 	convertTTLToMilliseconds(ttl: TTLType): number {
 		if (typeof ttl === "number") return ttl;

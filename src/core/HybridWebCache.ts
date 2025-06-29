@@ -56,62 +56,6 @@ export class HybridWebCache {
 	}
 
 	/**
-	 * Resets the storage with the provided key-value pairs and optional TTL.
-	 *
-	 * This method first clears all existing entries in the storage engine.
-	 * It then iterates over the provided key-value pairs, setting each one
-	 * in the storage with the specified TTL. If no TTL is provided, the
-	 * default TTL from the options is used.
-	 *
-	 * @template T - The type of values being stored.
-	 * @param keyValues - An object containing key-value pairs to be stored.
-	 * @param ttl - Optional TTL settings for the stored values. Defaults to
-	 *              the instance's configured TTL.
-	 * @returns A promise that resolves when all key-value pairs have been
-	 *          set in the storage.
-	 */
-	async resetWith<T extends ValueTypes>(keyValues: KeyValues<T>, ttl: Partial<TTLType> = this.options.ttl): Promise<void> {
-		await this.storageEngine.unset();
-
-		const promises = Object.entries(keyValues).map(([key, value]) => {
-			const obj: object = {};
-
-			_set(obj, key, value);
-			const dataSet = this.prepareDataSet<T>(obj as T, ttl);
-
-			return this.storageEngine.set(this.createKey(key), dataSet.data);
-		});
-
-		await Promise.all(promises);
-	}
-
-	/**
-	 * Resets the storage with the provided key-value pairs and optional TTL.
-	 *
-	 * This method first clears all existing entries in the storage engine.
-	 * It then iterates over the provided key-value pairs, setting each one
-	 * in the storage with the specified TTL. If no TTL is provided, the
-	 * default TTL from the options is used.
-	 *
-	 * @template T - The type of values being stored.
-	 * @param keyValues - An object containing key-value pairs to be stored.
-	 * @param ttl - Optional TTL settings for the stored values. Defaults to
-	 *              the instance's configured TTL.
-	 */
-	resetWithSync<T extends ValueTypes>(keyValues: KeyValues<T>, ttl: Partial<TTLType> = this.options.ttl): void {
-		this.storageEngine.unsetSync();
-
-		Object.entries(keyValues).forEach(([key, value]) => {
-			const obj: object = {};
-
-			_set(obj, key, value);
-			const dataSet = this.prepareDataSet<T>(obj as T, ttl);
-
-			this.storageEngine.set(this.createKey(key), dataSet.data);
-		});
-	}
-
-	/**
 	 * Sets the value for a given keyPath in the storage engine.
 	 *
 	 * If the keyPath already exists, its value is updated with the provided
@@ -125,6 +69,10 @@ export class HybridWebCache {
 	 *              the instance's configured TTL.
 	 */
 	async set<T extends ValueTypes>(keyPath: KeyPath, value: T, ttl: Partial<TTLType> = this.options.ttl): Promise<void> {
+		if (keyPath === undefined || keyPath === null) {
+			throw new Error("KeyPath cannot be undefined or null.");
+		}
+
 		const key = this.createKey(keyPath);
 		const data = await this.storageEngine.get(key);
 		const obj = data?.value || {};
@@ -146,6 +94,10 @@ export class HybridWebCache {
 	 *              the instance's configured TTL.
 	 */
 	setSync<T extends ValueTypes>(keyPath: KeyPath, value: T, ttl: Partial<TTLType> = this.options.ttl): void {
+		if (keyPath === undefined || keyPath === null) {
+			throw new Error("KeyPath cannot be undefined or null.");
+		}
+
 		const key = this.createKey(keyPath);
 		const data = this.storageEngine.getSync(key);
 		const obj = data?.value || {};
@@ -173,6 +125,10 @@ export class HybridWebCache {
 	 *          or `undefined` if the value does not exist or is expired and removed.
 	 */
 	async get<T extends ValueTypes>(keyPath: KeyPath, removeExpired: boolean = this.options.removeExpired): Promise<DataGetType<T> | undefined> {
+		if (keyPath === undefined || keyPath === null) {
+			throw new Error("KeyPath cannot be undefined or null.");
+		}
+
 		const key = this.createKey(keyPath);
 		const data = await this.storageEngine.get(key);
 
@@ -217,6 +173,10 @@ export class HybridWebCache {
 	 *          value does not exist or is expired and removed.
 	 */
 	getSync<T extends ValueTypes>(keyPath: KeyPath, removeExpired: boolean = this.options.removeExpired): DataGetType<T> | undefined {
+		if (keyPath === undefined || keyPath === null) {
+			throw new Error("KeyPath cannot be undefined or null.");
+		}
+
 		const key = this.createKey(keyPath);
 		const data = this.storageEngine.getSync(key);
 
@@ -263,8 +223,8 @@ export class HybridWebCache {
 
 		const result: Map<string, DataGetType<T>> = new Map();
 
-		for (const [_key, data] of allItems) {
-			const [iKey, iValue] = Object.entries(data.value!)[0];
+		for (const [key, data] of allItems) {
+			const [iKey, iValue] = Object.entries(data.value ?? { key, value: null })[0];
 
 			// Check if the item is expired
 			data.isExpired = Utils.isExpired(data.expiresAt);
@@ -306,8 +266,8 @@ export class HybridWebCache {
 
 		const result: Map<string, DataGetType<T>> = new Map();
 
-		for (const [_key, data] of allItems) {
-			const [iKey, iValue] = Object.entries(data.value!)[0];
+		for (const [key, data] of allItems) {
+			const [iKey, iValue] = data.value ? Object.entries(data.value)[0] : [key, null];
 
 			// Check if the item is expired
 			data.isExpired = Utils.isExpired(data.expiresAt);
@@ -329,6 +289,64 @@ export class HybridWebCache {
 	}
 
 	/**
+	 * Asynchronously retrieves all key-value pairs from the storage as a JSON object.
+	 *
+	 * If the `removeExpired` flag is set to true, expired values are removed from storage
+	 * before being included in the result.
+	 *
+	 * @category Core
+	 * @param removeExpired - A flag indicating whether to remove expired values from storage.
+	 *                        Defaults to the instance's configured setting.
+	 * @returns A promise that resolves to a JSON object containing all key-value pairs.
+	 *          If no items are found or all items are expired and removed, `null` is returned.
+	 */
+	async getJson(removeExpired: boolean = this.options.removeExpired): Promise<Record<string, ValueTypes> | null> {
+		const allValues: Record<string, ValueTypes> = {};
+		const allItems = await this.getAll(removeExpired);
+
+		if (!allItems) {
+			return null;
+		}
+
+		for (const [key, data] of allItems) {
+			if (data && data.value !== undefined) {
+				allValues[key] = data.value;
+			}
+		}
+
+		return allValues;
+	}
+
+	/**
+	 * Synchronously retrieves all key-value pairs from the storage as a JSON object.
+	 *
+	 * If the `removeExpired` flag is set to true, expired values are removed from storage
+	 * before being included in the result.
+	 *
+	 * @category Core
+	 * @param removeExpired - A flag indicating whether to remove expired values from storage.
+	 *                        Defaults to the instance's configured setting.
+	 * @returns A JSON object containing all key-value pairs. If no items are found or all
+	 *          items are expired and removed, `null` is returned.
+	 */
+	getJsonSync(removeExpired: boolean = this.options.removeExpired): Record<string, ValueTypes> | null {
+		const allValues: Record<string, ValueTypes> = {};
+		const allItems = this.getAllSync(removeExpired);
+
+		if (!allItems) {
+			return null;
+		}
+
+		for (const [key, data] of allItems) {
+			if (data && data.value !== undefined) {
+				allValues[key] = data.value;
+			}
+		}
+
+		return allValues;
+	}
+
+	/**
 	 * Checks if a value exists for the specified keyPath in the storage engine.
 	 *
 	 * This method first creates a key from the provided keyPath. If the key matches
@@ -342,6 +360,10 @@ export class HybridWebCache {
 	 *          or `false` otherwise.
 	 */
 	async has(keyPath: KeyPath): Promise<boolean> {
+		if (keyPath === undefined || keyPath === null) {
+			throw new Error("KeyPath cannot be undefined or null.");
+		}
+
 		const key = this.createKey(keyPath);
 
 		if (key === keyPath.toString()) {
@@ -366,6 +388,10 @@ export class HybridWebCache {
 	 * @returns `true` if the key exists and has a non-null value, or `false` otherwise.
 	 */
 	hasSync(keyPath: KeyPath): boolean {
+		if (keyPath === undefined || keyPath === null) {
+			throw new Error("KeyPath cannot be undefined or null.");
+		}
+
 		const key = this.createKey(keyPath);
 
 		if (key === keyPath.toString()) {
@@ -431,6 +457,8 @@ export class HybridWebCache {
 	 */
 	unset(keyPath: KeyPath): Promise<boolean>;
 	async unset(keyPath?: KeyPath): Promise<boolean> {
+		if (this.storageEngine.length === 0) return false;
+
 		if (keyPath) {
 			const key = this.createKey(keyPath);
 			const data = await this.storageEngine.get(key);
@@ -503,6 +531,8 @@ export class HybridWebCache {
 	 */
 	unsetSync(keyPath: KeyPath): boolean;
 	unsetSync(keyPath?: KeyPath): boolean {
+		if (this.storageEngine.length === 0) return false;
+
 		if (keyPath) {
 			const key = this.createKey(keyPath);
 			const data = this.storageEngine.getSync(key);
@@ -525,61 +555,59 @@ export class HybridWebCache {
 	}
 
 	/**
-	 * Asynchronously retrieves all key-value pairs from the storage as a JSON object.
+	 * Resets the storage with the provided key-value pairs and optional TTL.
 	 *
-	 * If the `removeExpired` flag is set to true, expired values are removed from storage
-	 * before being included in the result.
+	 * This method first clears all existing entries in the storage engine.
+	 * It then iterates over the provided key-value pairs, setting each one
+	 * in the storage with the specified TTL. If no TTL is provided, the
+	 * default TTL from the options is used.
 	 *
-	 * @category Core
-	 * @param removeExpired - A flag indicating whether to remove expired values from storage.
-	 *                        Defaults to the instance's configured setting.
-	 * @returns A promise that resolves to a JSON object containing all key-value pairs.
-	 *          If no items are found or all items are expired and removed, `null` is returned.
+	 * @template T - The type of values being stored.
+	 * @param keyValues - An object containing key-value pairs to be stored.
+	 * @param ttl - Optional TTL settings for the stored values. Defaults to
+	 *              the instance's configured TTL.
+	 * @returns A promise that resolves when all key-value pairs have been
+	 *          set in the storage.
 	 */
-	async getJson(removeExpired: boolean = this.options.removeExpired): Promise<Record<string, any> | null> {
-		const allValues: Record<string, any> = {};
-		const allItems = await this.getAll(removeExpired);
+	async resetWith<T extends ValueTypes>(keyValues: KeyValues<T>, ttl: Partial<TTLType> = this.options.ttl): Promise<void> {
+		await this.storageEngine.unset();
 
-		if (!allItems) {
-			return null;
-		}
+		const promises = Object.entries(keyValues).map(([key, value]) => {
+			const obj: object = {};
 
-		for (const [key, data] of allItems) {
-			if (data && data.value !== undefined) {
-				allValues[key] = data.value;
-			}
-		}
+			_set(obj, key, value);
+			const dataSet = this.prepareDataSet<T>(obj as T, ttl);
 
-		return allValues;
+			return this.storageEngine.set(this.createKey(key), dataSet.data);
+		});
+
+		await Promise.all(promises);
 	}
 
 	/**
-	 * Synchronously retrieves all key-value pairs from the storage as a JSON object.
+	 * Resets the storage with the provided key-value pairs and optional TTL.
 	 *
-	 * If the `removeExpired` flag is set to true, expired values are removed from storage
-	 * before being included in the result.
+	 * This method first clears all existing entries in the storage engine.
+	 * It then iterates over the provided key-value pairs, setting each one
+	 * in the storage with the specified TTL. If no TTL is provided, the
+	 * default TTL from the options is used.
 	 *
-	 * @category Core
-	 * @param removeExpired - A flag indicating whether to remove expired values from storage.
-	 *                        Defaults to the instance's configured setting.
-	 * @returns A JSON object containing all key-value pairs. If no items are found or all
-	 *          items are expired and removed, `null` is returned.
+	 * @template T - The type of values being stored.
+	 * @param keyValues - An object containing key-value pairs to be stored.
+	 * @param ttl - Optional TTL settings for the stored values. Defaults to
+	 *              the instance's configured TTL.
 	 */
-	getJsonSync(removeExpired: boolean = this.options.removeExpired): Record<string, any> | null {
-		const allValues: Record<string, any> = {};
-		const allItems = this.getAllSync(removeExpired);
+	resetWithSync<T extends ValueTypes>(keyValues: KeyValues<T>, ttl: Partial<TTLType> = this.options.ttl): void {
+		this.storageEngine.unsetSync();
 
-		if (!allItems) {
-			return null;
-		}
+		Object.entries(keyValues).forEach(([key, value]) => {
+			const obj: object = {};
 
-		for (const [key, data] of allItems) {
-			if (data && data.value !== undefined) {
-				allValues[key] = data.value;
-			}
-		}
+			_set(obj, key, value);
+			const dataSet = this.prepareDataSet<T>(obj as T, ttl);
 
-		return allValues;
+			this.storageEngine.set(this.createKey(key), dataSet.data);
+		});
 	}
 
 	/**
