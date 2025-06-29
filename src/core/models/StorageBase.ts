@@ -7,8 +7,8 @@ export interface StorageBase {
 	get<T extends ValueTypes>(key: string): Promise<DataGetType<T> | undefined>;
 	getSync<T extends ValueTypes>(key: string): DataGetType<T> | undefined;
 
-	getAll(): Promise<Map<string, DataGetType<unknown>> | null>;
-	getAllSync(): Map<string, DataGetType<unknown>> | null;
+	getAll<T extends ValueTypes>(): Promise<Map<string, DataGetType<T>> | null>;
+	getAllSync<T extends ValueTypes>(): Map<string, DataGetType<T>> | null;
 
 	has(key: string): Promise<boolean>;
 

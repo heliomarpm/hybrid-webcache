@@ -1,6 +1,6 @@
 import { get as _get, set as _set, unset as _unset } from "lodash";
 
-import { StorageBase, DataGetType, DataSetType, KeyPath, KeyValues, OptionsType, StorageType, TTLType, ValueTypes } from "./models";
+import { type DataGetType, type DataSetType, type KeyPath, type KeyValues, type OptionsType, type StorageBase, StorageType, type TTLType, type ValueTypes } from "./models";
 import { StorageFactory } from "./StorageFactory";
 import { Utils } from "./utils";
 
@@ -31,7 +31,7 @@ export class HybridWebCache {
 	 * }
 	 * ```
 	 */
-	constructor(baseName: string = "HybridWebCache", options?: Partial<OptionsType>) {
+	constructor(baseName = "HybridWebCache", options?: Partial<OptionsType>) {
 		this.baseName = baseName;
 		this.options = { ...defaultOptions, ...options };
 
@@ -154,7 +154,7 @@ export class HybridWebCache {
 
 		const dataSet = this.prepareDataSet(obj, ttl);
 
-		return this.storageEngine.setSync(key, dataSet.data);
+		this.storageEngine.setSync(key, dataSet.data);
 	}
 
 	/**
@@ -255,13 +255,13 @@ export class HybridWebCache {
 	 *          expiration time, and expiration status. If no values are found or if all values
 	 *          are expired and removed, `null` is returned.
 	 */
-	async getAll(removeExpired: boolean = this.options.removeExpired): Promise<Map<string, DataGetType<unknown>> | null> {
+	async getAll<T extends ValueTypes>(removeExpired: boolean = this.options.removeExpired): Promise<Map<string, DataGetType<T>> | null> {
 		const allItems = await this.storageEngine.getAll();
 		if (!allItems) {
 			return null;
 		}
 
-		const result: Map<string, DataGetType<unknown>> = new Map();
+		const result: Map<string, DataGetType<T>> = new Map();
 
 		for (const [_key, data] of allItems) {
 			const [iKey, iValue] = Object.entries(data.value!)[0];
@@ -276,7 +276,7 @@ export class HybridWebCache {
 			}
 
 			result.set(iKey, {
-				value: iValue,
+				value: iValue as T,
 				expiresAt: data.expiresAt,
 				isExpired: data.isExpired,
 			});
@@ -298,13 +298,13 @@ export class HybridWebCache {
 	 *          expiration time, and expiration status. If no values are found or if all values
 	 *          are expired and removed, `null` is returned.
 	 */
-	getAllSync(removeExpired: boolean = this.options.removeExpired): Map<string, DataGetType<unknown>> | null {
+	getAllSync<T extends ValueTypes>(removeExpired: boolean = this.options.removeExpired): Map<string, DataGetType<T>> | null {
 		const allItems = this.storageEngine.getAllSync();
 		if (!allItems) {
 			return null;
 		}
 
-		const result: Map<string, DataGetType<unknown>> = new Map();
+		const result: Map<string, DataGetType<T>> = new Map();
 
 		for (const [_key, data] of allItems) {
 			const [iKey, iValue] = Object.entries(data.value!)[0];
@@ -319,7 +319,7 @@ export class HybridWebCache {
 			}
 
 			result.set(iKey, {
-				value: iValue,
+				value: iValue as T,
 				expiresAt: data.expiresAt,
 				isExpired: data.isExpired,
 			});

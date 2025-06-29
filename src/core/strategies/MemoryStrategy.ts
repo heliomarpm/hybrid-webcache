@@ -17,11 +17,11 @@ export class MemoryStrategy implements StorageBase {
 		return this.storage.get(key);
 	}
 
-	getAll(): Promise<Map<string, DataGetType<unknown>> | null> {
-		return Promise.resolve(this.getAllSync());
+	getAll<T extends ValueTypes>(): Promise<Map<string, DataGetType<T>> | null> {
+		return Promise.resolve(this.getAllSync<T>());
 	}
-	getAllSync(): Map<string, DataGetType<unknown>> | null {
-		return this.storage.size > 0 ? this.storage : null;
+	getAllSync<T extends ValueTypes>(): Map<string, DataGetType<T>> | null {
+		return this.storage.size > 0 ? (this.storage as Map<string, DataGetType<T>>) : null;
 	}
 
 	has(key: string): Promise<boolean> {

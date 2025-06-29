@@ -27,17 +27,18 @@ export class SessionStorageStrategy implements StorageBase {
 		return this.hasSync(key) ? JSON.parse(sessionStorage.getItem(this.formattedKey(key))!) : undefined;
 	}
 
-	getAll(): Promise<Map<string, DataGetType<unknown>> | null> {
-		return Promise.resolve(this.getAllSync());
+	getAll<T extends ValueTypes>(): Promise<Map<string, DataGetType<T>> | null> {
+		return Promise.resolve(this.getAllSync<T>());
 	}
 
-	getAllSync(): Map<string, DataGetType<unknown>> | null {
+	getAllSync<T extends ValueTypes>(): Map<string, DataGetType<T>> | null {
 		const data = new Map();
 
 		for (let i = 0; i < sessionStorage.length; i++) {
-			const key = sessionStorage.key(i)!;
-			if (key.startsWith(this.prefixKey)) {
-				data.set(key.replace(this.prefixKey, ""), JSON.parse(sessionStorage.getItem(key)!));
+			const key = sessionStorage.key(i);
+			if (key?.startsWith(this.prefixKey)) {
+				const item = sessionStorage.getItem(key);
+				data.set(key.replace(this.prefixKey, ""), item ? JSON.parse(item) : item);
 			}
 		}
 

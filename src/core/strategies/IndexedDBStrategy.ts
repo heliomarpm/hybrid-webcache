@@ -159,8 +159,8 @@ export class IndexedDBStrategy implements StorageBase {
 		}
 	}
 
-	async getAll(): Promise<Map<string, DataGetType<unknown>> | null> {
-		const result = new Map<string, DataGetType<unknown>>();
+	async getAll<T extends ValueTypes>(): Promise<Map<string, DataGetType<T>> | null> {
+		const result = new Map<string, DataGetType<T>>();
 		await this.execute("readonly", (store) => {
 			const request = store.openCursor();
 			request.onsuccess = (event) => {
@@ -175,7 +175,7 @@ export class IndexedDBStrategy implements StorageBase {
 		return result.size > 0 ? result : null;
 	}
 
-	getAllSync(): Map<string, DataGetType<unknown>> | null {
+	getAllSync<T extends ValueTypes>(): Map<string, DataGetType<T>> | null {
 		return this.memoryCache.size > 0 ? new Map(this.memoryCache) : null;
 	}
 	async has(key: string): Promise<boolean> {

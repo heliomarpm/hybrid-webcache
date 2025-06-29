@@ -27,17 +27,18 @@ export class LocalStorageStrategy implements StorageBase {
 		return this.hasSync(key) ? JSON.parse(localStorage.getItem(this.formattedKey(key))!) : undefined;
 	}
 
-	getAll(): Promise<Map<string, DataGetType<unknown>> | null> {
-		return Promise.resolve(this.getAllSync());
+	getAll<T extends ValueTypes>(): Promise<Map<string, DataGetType<T>> | null> {
+		return Promise.resolve(this.getAllSync<T>());
 	}
 
-	getAllSync(): Map<string, DataGetType<unknown>> | null {
+	getAllSync<T extends ValueTypes>(): Map<string, DataGetType<T>> | null {
 		const data = new Map();
 
 		for (let i = 0; i < localStorage.length; i++) {
-			const key = localStorage.key(i)!;
-			if (key.startsWith(this.prefixKey)) {
-				data.set(key.replace(this.prefixKey, ""), JSON.parse(localStorage.getItem(key)!));
+			const key = localStorage.key(i);
+			if (key?.startsWith(this.prefixKey)) {
+				const item = localStorage.getItem(key);
+				data.set(key.replace(this.prefixKey, ""), item ? JSON.parse(item) : item);
 			}
 		}
 
