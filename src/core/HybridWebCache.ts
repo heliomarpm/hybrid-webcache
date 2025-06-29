@@ -7,7 +7,7 @@ import { Utils } from "./utils";
 const defaultOptions: OptionsType = {
 	ttl: { seconds: 0, minutes: 0, hours: 1, days: 0 },
 	removeExpired: true,
-	storage: StorageType.Auto
+	storage: StorageType.Auto,
 };
 
 export class HybridWebCache {
@@ -192,7 +192,7 @@ export class HybridWebCache {
 			return {
 				value,
 				expiresAt: data.expiresAt,
-				isExpired: data.isExpired
+				isExpired: data.isExpired,
 			} as DataGetType<T>;
 		}
 
@@ -236,7 +236,7 @@ export class HybridWebCache {
 			return {
 				value,
 				expiresAt: data.expiresAt,
-				isExpired: data.isExpired
+				isExpired: data.isExpired,
 			} as DataGetType<T>;
 		}
 
@@ -278,7 +278,7 @@ export class HybridWebCache {
 			result.set(iKey, {
 				value: iValue,
 				expiresAt: data.expiresAt,
-				isExpired: data.isExpired
+				isExpired: data.isExpired,
 			});
 		}
 
@@ -321,7 +321,7 @@ export class HybridWebCache {
 			result.set(iKey, {
 				value: iValue,
 				expiresAt: data.expiresAt,
-				isExpired: data.isExpired
+				isExpired: data.isExpired,
 			});
 		}
 
@@ -615,8 +615,8 @@ export class HybridWebCache {
 			size,
 			options: {
 				...this.options,
-				ttl: Utils.convertTTLToMilliseconds(this.options.ttl)
-			}
+				ttl: Utils.convertTTLToMilliseconds(this.options.ttl),
+			},
 		};
 	}
 

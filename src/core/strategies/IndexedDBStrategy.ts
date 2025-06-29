@@ -43,7 +43,7 @@ export class IndexedDBStrategy implements StorageBase {
 		const transaction = this.db.transaction(this.storeName, "readonly");
 		const store = transaction.objectStore(this.storeName);
 
-		store.getAll().onsuccess = event => {
+		store.getAll().onsuccess = (event) => {
 			const data = (event.target as IDBRequest).result;
 			for (let i = 0; i < data.length; i++) {
 				this.memoryCache.set(data[i].key, data[i]);
@@ -65,7 +65,7 @@ export class IndexedDBStrategy implements StorageBase {
 		return new Promise((resolve, reject) => {
 			const request = indexedDB.open(this.baseName, 1);
 
-			request.onupgradeneeded = event => {
+			request.onupgradeneeded = (event) => {
 				const db = (event.target as IDBOpenDBRequest).result;
 				if (!db.objectStoreNames.contains(this.storeName)) {
 					db.createObjectStore(this.storeName, { keyPath: "key" });
@@ -75,12 +75,12 @@ export class IndexedDBStrategy implements StorageBase {
 			// request.onsuccess = () => resolve(request.result);
 			// request.onerror = (event) => reject(event);
 
-			request.onsuccess = event => {
+			request.onsuccess = (event) => {
 				this.db = (event.target as IDBOpenDBRequest).result;
 				resolve(this.db);
 			};
 
-			request.onerror = event => {
+			request.onerror = (event) => {
 				console.error(`Failed to open IndexedDB: ${(event.target as IDBOpenDBRequest).error}`);
 				reject((event.target as IDBOpenDBRequest).error);
 			};
@@ -112,7 +112,7 @@ export class IndexedDBStrategy implements StorageBase {
 			return operation(store);
 		};
 
-		request.onerror = event => {
+		request.onerror = (event) => {
 			console.error(`Failed to execute queue operation: ${(event.target as IDBOpenDBRequest).error}`);
 		};
 	}
@@ -124,7 +124,7 @@ export class IndexedDBStrategy implements StorageBase {
 	async set<T extends ValueTypes>(key: string, data: DataSetType<T>): Promise<void> {
 		const start = Date.now();
 
-		await this.execute("readwrite", store => store.put({ id: key, ...data }));
+		await this.execute("readwrite", (store) => store.put({ id: key, ...data }));
 		this.memoryCache.set(key, data);
 		this.channel.postMessage({ action: "sync", key, value: data });
 
@@ -135,7 +135,7 @@ export class IndexedDBStrategy implements StorageBase {
 		this.memoryCache.set(key, data);
 		this.channel.postMessage({ action: "sync", key, value: data });
 
-		this.executeQueue("readwrite", store => store.put({ id: key, ...data }));
+		this.executeQueue("readwrite", (store) => store.put({ id: key, ...data }));
 	}
 
 	async get<T extends ValueTypes>(key: string): Promise<DataGetType<T> | undefined> {
@@ -144,7 +144,7 @@ export class IndexedDBStrategy implements StorageBase {
 		}
 
 		const start = Date.now();
-		const data = await this.execute("readonly", store => store.get(key));
+		const data = await this.execute("readonly", (store) => store.get(key));
 		if (data) {
 			this.memoryCache.set(key, data); // Atualiza a memória
 		}
@@ -161,9 +161,9 @@ export class IndexedDBStrategy implements StorageBase {
 
 	async getAll(): Promise<Map<string, DataGetType<unknown>> | null> {
 		const result = new Map<string, DataGetType<unknown>>();
-		await this.execute("readonly", store => {
+		await this.execute("readonly", (store) => {
 			const request = store.openCursor();
-			request.onsuccess = event => {
+			request.onsuccess = (event) => {
 				const cursor = (event.target as IDBRequest<IDBCursorWithValue>).result;
 				if (cursor) {
 					result.set(cursor.key as string, cursor.value);
@@ -192,11 +192,11 @@ export class IndexedDBStrategy implements StorageBase {
 	unset(key?: string): Promise<boolean> {
 		if (key) {
 			this.memoryCache.delete(key);
-			return this.execute("readwrite", store => store.delete(key));
+			return this.execute("readwrite", (store) => store.delete(key));
 		}
 
 		this.memoryCache.clear();
-		return this.execute("readwrite", store => store.clear());
+		return this.execute("readwrite", (store) => store.clear());
 	}
 
 	unsetSync(key?: string): boolean {
@@ -204,13 +204,13 @@ export class IndexedDBStrategy implements StorageBase {
 			this.memoryCache.delete(key);
 
 			this.channel.postMessage({ action: "sync", key, value: null });
-			return this.executeQueue("readwrite", store => store.delete(key)) !== undefined;
+			return this.executeQueue("readwrite", (store) => store.delete(key)) !== undefined;
 		}
 
 		this.memoryCache.clear();
 
 		this.channel.postMessage({ action: "sync", key, value: null });
-		return this.executeQueue("readwrite", store => store.clear()) !== undefined;
+		return this.executeQueue("readwrite", (store) => store.clear()) !== undefined;
 	}
 
 	get length(): number {

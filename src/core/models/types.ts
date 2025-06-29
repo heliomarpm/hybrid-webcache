@@ -3,7 +3,7 @@ export enum StorageType {
 	LocalStorage = 1,
 	IndexedDB = 2,
 	SessionStorage = 3,
-	Memory = 4
+	Memory = 4,
 }
 
 export type ValueTypes = null | string | number | boolean | object | DictionaryType | ValueTypes[];
