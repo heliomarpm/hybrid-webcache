@@ -1,50 +1,109 @@
-import type { DataGet, DataSet, StorageBase, ValueType } from "../models";
-import { StorageType } from "../models";
+import type { DataModel, StorageBase, ValueType } from "../models";
+import { StorageEngine } from "../models";
 
 export class LocalStorageStrategy implements StorageBase {
 	private prefixKey: string;
+	private memoryCache: Map<string, DataModel<ValueType>> = new Map();
+	private channel: BroadcastChannel;
 
 	constructor(prefixKey = "HybridWebCache") {
 		this.prefixKey = `${prefixKey.trim()}::`;
+
+		this.channel = new BroadcastChannel(`${this.prefixKey}`);
+		this.channel.onmessage = this.handleSyncEvent.bind(this);
+
+		this.loadMemoryCache(); // Load existing data into memory cache on initialization
+	}
+
+	private handleSyncEvent(event: MessageEvent): void {
+		// Handle sync events for multi-instance communication
+		const action = event.data?.action || "";
+
+		switch (action) {
+			case "clear":
+				this.memoryCache.clear();
+				break;
+			case "unset": {
+				const { key } = event.data;
+				if (key) {
+					this.memoryCache.delete(key);
+				}
+				break;
+			}
+			case "sync": {
+				const { key, value } = event.data;
+				this.memoryCache.set(key, value);
+				break;
+			}
+			default:
+				break;
+		}
 	}
 
 	private formattedKey(key: string): string {
 		return `${this.prefixKey}${key}`;
 	}
 
-	set<T extends ValueType>(key: string, data: DataSet<T>): Promise<void> {
-		return Promise.resolve(this.setSync(key, data));
-	}
-
-	setSync<T extends ValueType>(key: string, data: DataSet<T>): void {
-		localStorage.setItem(this.formattedKey(key), JSON.stringify(data));
-	}
-
-	get<T extends ValueType>(key: string): Promise<DataGet<T> | undefined> {
-		return Promise.resolve(this.getSync(key));
-	}
-
-	getSync<T extends ValueType>(key: string): DataGet<T> | undefined {
-		const item = localStorage.getItem(this.formattedKey(key));
-		return item ? JSON.parse(item) : undefined;
-	}
-
-	getAll<T extends ValueType>(): Promise<Map<string, DataGet<T>> | null> {
-		return Promise.resolve(this.getAllSync<T>());
-	}
-
-	getAllSync<T extends ValueType>(): Map<string, DataGet<T>> | null {
-		const data = new Map();
-
+	private _forEachStorage(callback: (originalKey: string, value: string | null) => void): void {
 		for (let i = 0; i < localStorage.length; i++) {
 			const key = localStorage.key(i);
 			if (key?.startsWith(this.prefixKey)) {
-				const item = localStorage.getItem(key);
-				data.set(key.replace(this.prefixKey, ""), item ? JSON.parse(item) : item);
+				callback(key.replace(this.prefixKey, ""), localStorage.getItem(key));
 			}
 		}
+	}
 
-		return data.size > 0 ? data : null;
+	private loadMemoryCache(): void {
+		this.memoryCache.clear(); // Clear existing cache before loading
+
+		this._forEachStorage((key, value) => {
+			const data: DataModel<ValueType> = JSON.parse(value ?? "{}");
+			this.memoryCache.set(key, data);
+		});
+	}
+
+	/** @internal */
+	async init(): Promise<void> {
+		return Promise.resolve();
+	}
+
+	set<T extends ValueType>(key: string, data: DataModel<T>): Promise<void> {
+		return Promise.resolve(this.setSync(key, data));
+	}
+
+	setSync<T extends ValueType>(key: string, data: DataModel<T>): void {
+		localStorage.setItem(this.formattedKey(key), JSON.stringify(data));
+		this.memoryCache.set(key, data);
+		this.channel.postMessage({ action: "sync", key, value: data });
+	}
+
+	get<T extends ValueType>(key: string): Promise<DataModel<T> | undefined> {
+		return Promise.resolve(this.getSync(key));
+	}
+
+	getSync<T extends ValueType>(key: string): DataModel<T> | undefined {
+		// const item = localStorage.getItem(this.formattedKey(key));
+		// return item ? JSON.parse(item) : undefined;
+		return this.memoryCache.get(key) as DataModel<T>;
+	}
+
+	getAll<T extends ValueType>(): Promise<Map<string, DataModel<T>> | null> {
+		return Promise.resolve(this.getAllSync<T>());
+	}
+
+	getAllSync<T extends ValueType>(): Map<string, DataModel<T>> | null {
+		// const data = new Map();
+
+		// for (let i = 0; i < localStorage.length; i++) {
+		// 	const key = localStorage.key(i);
+		// 	if (key?.startsWith(this.prefixKey)) {
+		// 		const item = localStorage.getItem(key);
+		// 		data.set(key.replace(this.prefixKey, ""), item ? JSON.parse(item) : item);
+		// 	}
+		// }
+
+		// return data.size > 0 ? data : null;
+		return this.memoryCache.size > 0 ? (this.memoryCache as Map<string, DataModel<T>>) : null;
 	}
 
 	has(key: string): Promise<boolean> {
@@ -52,7 +111,8 @@ export class LocalStorageStrategy implements StorageBase {
 	}
 
 	hasSync(key: string): boolean {
-		return !!localStorage.getItem(this.formattedKey(key));
+		// return !!localStorage.getItem(this.formattedKey(key));
+		return this.memoryCache.has(key);
 	}
 
 	unset(key?: string): Promise<boolean> {
@@ -60,59 +120,45 @@ export class LocalStorageStrategy implements StorageBase {
 	}
 
 	unsetSync(key?: string): boolean {
-		if (localStorage.length === 0) return false;
+		if (this.memoryCache.size === 0) return false;
 
 		let result = false;
 		if (!key) {
 			const keysToRemove: string[] = [];
-			for (let i = 0; i < localStorage.length; i++) {
-				const currentKey = localStorage.key(i);
-				if (currentKey?.startsWith(this.prefixKey)) {
-					keysToRemove.push(currentKey);
-				}
-			}
+			this._forEachStorage((originalKey, _value) => keysToRemove.push(originalKey));
 			keysToRemove.forEach((k) => localStorage.removeItem(k));
-			result = keysToRemove.length > 0;
+			this.memoryCache.clear();
+			this.channel.postMessage({ action: "clear", key: undefined, value: undefined });
+			result = true;
 		} else {
-			result = this.hasSync(key);
-			if (result) {
+			if (this.hasSync(key)) {
 				const fKey = this.formattedKey(key);
 				localStorage.removeItem(fKey);
+				result = this.memoryCache.delete(key);
+				this.channel.postMessage({ action: "unset", key, value: undefined });
 			}
 		}
 		return result;
 	}
 
 	get length(): number {
-		// return localStorage.length;
-		let count = 0;
-		for (let i = 0; i < localStorage.length; i++) {
-			if (localStorage.key(i)?.startsWith(this.prefixKey)) {
-				count++;
-			}
-		}
-		return count;
+		return this.memoryCache.size;
 	}
 
 	get bytes(): number {
-		const all = this.getAllSync();
-		if (all === null) return 0;
-
-		// const obj = Object.fromEntries(this.getAllSync()!);
-		// const jsonString = JSON.stringify(obj);
-		// return new TextEncoder().encode(jsonString).length;
+		if (this.memoryCache.size === 0) return 0;
 
 		let totalBytes = 0;
-		for (const [key, value] of all) {
-			// totalBytes += new Blob([key]).size;
-			// totalBytes += new Blob([JSON.stringify(value)]).size;
-			totalBytes += new TextEncoder().encode(key).length; // Usando TextEncoder para consist�ncia
-			totalBytes += new TextEncoder().encode(JSON.stringify(value)).length;
-		}
+		this._forEachStorage((key, value) => {
+			totalBytes += new TextEncoder().encode(key).length;
+			if (value) {
+				totalBytes += new TextEncoder().encode(value).length;
+			}
+		});
 		return totalBytes;
 	}
 
-	get type(): StorageType {
-		return StorageType.LocalStorage;
+	get type(): StorageEngine {
+		return StorageEngine.LocalStorage;
 	}
 }

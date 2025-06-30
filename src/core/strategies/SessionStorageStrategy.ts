@@ -1,50 +1,65 @@
-import type { DataGet, DataSet, StorageBase, ValueType } from "../models";
-import { StorageType } from "../models";
+import type { DataModel, StorageBase, ValueType } from "../models";
+import { StorageEngine } from "../models";
 
 export class SessionStorageStrategy implements StorageBase {
 	private prefixKey: string;
+	private memoryCache: Map<string, DataModel<ValueType>> = new Map();
 
 	constructor(prefixKey = "HybridWebCache") {
 		this.prefixKey = `${prefixKey.trim()}::`;
+		this.loadMemoryCache(); // Load existing data into memory cache on initialization
 	}
 
 	private formattedKey(key: string): string {
 		return `${this.prefixKey}${key}`;
 	}
 
-	set<T extends ValueType>(key: string, data: DataSet<T>): Promise<void> {
-		return Promise.resolve(this.setSync(key, data));
-	}
-
-	setSync<T extends ValueType>(key: string, data: DataSet<T>): void {
-		sessionStorage.setItem(this.formattedKey(key), JSON.stringify(data));
-	}
-
-	get<T extends ValueType>(key: string): Promise<DataGet<T> | undefined> {
-		return Promise.resolve(this.getSync(key));
-	}
-
-	getSync<T extends ValueType>(key: string): DataGet<T> | undefined {
-		const item = sessionStorage.getItem(this.formattedKey(key));
-		return item ? JSON.parse(item) : undefined;
-	}
-
-	getAll<T extends ValueType>(): Promise<Map<string, DataGet<T>> | null> {
-		return Promise.resolve(this.getAllSync<T>());
-	}
-
-	getAllSync<T extends ValueType>(): Map<string, DataGet<T>> | null {
-		const data = new Map();
-
+	private _forEachStorage(callback: (originalKey: string, value: string | null) => void): void {
 		for (let i = 0; i < sessionStorage.length; i++) {
 			const key = sessionStorage.key(i);
 			if (key?.startsWith(this.prefixKey)) {
-				const item = sessionStorage.getItem(key);
-				data.set(key.replace(this.prefixKey, ""), item ? JSON.parse(item) : item);
+				callback(key.replace(this.prefixKey, ""), sessionStorage.getItem(key));
 			}
 		}
+	}
 
-		return data.size > 0 ? data : null;
+	private loadMemoryCache(): void {
+		this.memoryCache.clear(); // Clear existing cache before loading
+
+		this._forEachStorage((key, value) => {
+			const data: DataModel<ValueType> = JSON.parse(value ?? "{}");
+			this.memoryCache.set(key, data);
+		});
+	}
+
+	/** @internal */
+	async init(): Promise<void> {
+		return Promise.resolve();
+	}
+
+	set<T extends ValueType>(key: string, data: DataModel<T>): Promise<void> {
+		return Promise.resolve(this.setSync(key, data));
+	}
+
+	setSync<T extends ValueType>(key: string, data: DataModel<T>): void {
+		sessionStorage.setItem(this.formattedKey(key), JSON.stringify(data));
+		this.memoryCache.set(key, data);
+	}
+
+	get<T extends ValueType>(key: string): Promise<DataModel<T> | undefined> {
+		return Promise.resolve(this.getSync(key));
+	}
+
+	getSync<T extends ValueType>(key: string): DataModel<T> | undefined {
+		return this.memoryCache.get(key) as DataModel<T>;
+	}
+
+	getAll<T extends ValueType>(): Promise<Map<string, DataModel<T>> | null> {
+		return Promise.resolve(this.getAllSync<T>());
+	}
+
+	getAllSync<T extends ValueType>(): Map<string, DataModel<T>> | null {
+		return this.memoryCache.size > 0 ? (this.memoryCache as Map<string, DataModel<T>>) : null;
 	}
 
 	has(key: string): Promise<boolean> {
@@ -52,7 +67,7 @@ export class SessionStorageStrategy implements StorageBase {
 	}
 
 	hasSync(key: string): boolean {
-		return !!sessionStorage.getItem(this.formattedKey(key));
+		return this.memoryCache.has(key);
 	}
 
 	unset(key?: string): Promise<boolean> {
@@ -60,53 +75,43 @@ export class SessionStorageStrategy implements StorageBase {
 	}
 
 	unsetSync(key?: string): boolean {
-		if (sessionStorage.length === 0) return false;
+		if (this.memoryCache.size === 0) return false;
 
 		let result = false;
-
 		if (!key) {
 			const keysToRemove: string[] = [];
-			for (let i = 0; i < sessionStorage.length; i++) {
-				const currentKey = sessionStorage.key(i);
-				if (currentKey?.startsWith(this.prefixKey)) {
-					keysToRemove.push(currentKey);
-				}
-			}
+			this._forEachStorage((originalKey, _value) => keysToRemove.push(originalKey));
 			keysToRemove.forEach((k) => sessionStorage.removeItem(k));
-			result = keysToRemove.length > 0;
+			this.memoryCache.clear();
+			result = true;
 		} else {
-			result = this.hasSync(key);
-			if (result) {
+			if (this.hasSync(key)) {
 				const fKey = this.formattedKey(key);
 				sessionStorage.removeItem(fKey);
+				result = this.memoryCache.delete(key);
 			}
 		}
 		return result;
 	}
 
 	get length(): number {
-		let count = 0;
-		for (let i = 0; i < sessionStorage.length; i++) {
-			if (sessionStorage.key(i)?.startsWith(this.prefixKey)) {
-				count++;
-			}
-		}
-		return count;
+		return this.memoryCache.size;
 	}
 
 	get bytes(): number {
-		const all = this.getAllSync();
-		if (all === null) return 0;
+		if (this.memoryCache.size === 0) return 0;
 
 		let totalBytes = 0;
-		for (const [key, value] of all) {
+		this._forEachStorage((key, value) => {
 			totalBytes += new TextEncoder().encode(key).length;
-			totalBytes += new TextEncoder().encode(JSON.stringify(value)).length;
-		}
+			if (value) {
+				totalBytes += new TextEncoder().encode(value).length;
+			}
+		});
 		return totalBytes;
 	}
 
-	get type(): StorageType {
-		return StorageType.SessionStorage;
+	get type(): StorageEngine {
+		return StorageEngine.SessionStorage;
 	}
 }
