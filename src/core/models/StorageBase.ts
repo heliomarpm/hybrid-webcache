@@ -1,14 +1,16 @@
-import type { DataGet, DataSet, StorageType, ValueType } from "./types";
+import type { DataModel, StorageEngine, ValueType } from "./types";
 
 export interface StorageBase {
-	set<T extends ValueType>(key: string, data: DataSet<T>): Promise<void>;
-	setSync<T extends ValueType>(key: string, data: DataSet<T>): void;
+	init(): Promise<void>;
 
-	get<T extends ValueType>(key: string): Promise<DataGet<T> | undefined>;
-	getSync<T extends ValueType>(key: string): DataGet<T> | undefined;
+	set<T extends ValueType>(key: string, data: DataModel<T>): Promise<void>;
+	setSync<T extends ValueType>(key: string, data: DataModel<T>): void;
 
-	getAll<T extends ValueType>(): Promise<Map<string, DataGet<T>> | null>;
-	getAllSync<T extends ValueType>(): Map<string, DataGet<T>> | null;
+	get<T extends ValueType>(key: string): Promise<DataModel<T> | undefined>;
+	getSync<T extends ValueType>(key: string): DataModel<T> | undefined;
+
+	getAll<T extends ValueType>(): Promise<Map<string, DataModel<T>> | null>;
+	getAllSync<T extends ValueType>(): Map<string, DataModel<T>> | null;
 
 	has(key: string): Promise<boolean>;
 
@@ -24,5 +26,5 @@ export interface StorageBase {
 
 	get length(): number;
 	get bytes(): number;
-	get type(): StorageType;
+	get type(): StorageEngine;
 }

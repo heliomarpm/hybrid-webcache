@@ -1,4 +1,4 @@
-export enum StorageType {
+export enum StorageEngine {
 	Auto = 0,
 	LocalStorage = 1,
 	IndexedDB = 2,
@@ -15,16 +15,16 @@ export type KeyPath = string | Array<string>;
 export type TTL = number | { seconds?: number; minutes?: number; hours?: number; days?: number };
 
 export type Options = {
-	storage: StorageType;
+	storage: StorageEngine;
 	ttl: Partial<TTL>;
 	removeExpired: boolean;
 };
 
-export interface DataSet<T> {
+export interface DataModel<T> {
 	value: T;
 	expiresAt: number;
 }
 
-export interface DataGet<T> extends DataSet<T> {
+export interface DataGetModel<T> extends DataModel<T> {
 	isExpired: boolean;
 }
