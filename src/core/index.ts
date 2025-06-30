@@ -1,2 +1,2 @@
 export * from "./HybridWebCache";
-export { StorageBase, StorageType } from "./models";
+export { StorageBase, StorageEngine } from "./models";
