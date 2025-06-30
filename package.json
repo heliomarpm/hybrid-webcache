@@ -43,7 +43,10 @@
     "prebuild": "rimraf dist",
     "build:dev": "tsc -p tsconfig.json",
     "build": "tsc -p tsconfig.prod.json",
-    "pub:release": "node ./node_modules/gh_deploy/index.mjs"
+    "pub:release": "node ./node_modules/gh_deploy/index.mjs",
+    "clean": "rm -rf node_modules coverage dist",
+		"postclean": "npm cache clean --force"
+
   },
   "dependencies": {
     "lodash": "^4.17.21"
