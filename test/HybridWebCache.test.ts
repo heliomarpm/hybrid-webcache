@@ -1,37 +1,54 @@
-
 import FDBFactory from "fake-indexeddb/lib/FDBFactory";
-import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
-import { HybridWebCache, StorageType } from "../src";
+import { beforeEach, describe, expect, it } from "vitest";
+import { HybridWebCache, StorageEngine } from "../src";
 
 const strategies = [
-	// { name: "Automatic", type: StorageType.Auto },
-	// { name: "LocalStorage", type: StorageType.LocalStorage },
-	// { name: "SessionStorage", type: StorageType.SessionStorage },
-	//{ name: "IndexedDB", type: StorageType.IndexedDB },
-	{ name: "Memory", type: StorageType.Memory },
+	{ name: "Automatic", type: StorageEngine.Auto },
+	{ name: "LocalStorage", type: StorageEngine.LocalStorage },
+	{ name: "SessionStorage", type: StorageEngine.SessionStorage },
+	{ name: "IndexedDB", type: StorageEngine.IndexedDB },
+	{ name: "Memory", type: StorageEngine.Memory },
 ];
 
 describe.each(strategies)("HybridWebCache with $name Strategy", ({ type }) => {
 	let cache: HybridWebCache;
 
-	beforeEach(() => {
+	beforeEach(async () => {
 		mockStorage(type);
-		cache = new HybridWebCache("HybridWebCache", { storage: type });
+
+		cache = new HybridWebCache("hwc", { storage: type });
+		await cache.init();
+	});
+
+	describe("init", () => {
+
+		it("should resolve without throwing an error", async () => {
+			await expect(cache.init()).resolves.not.toThrow();
+		});
+		it("should return a resolved promise", async () => {
+			const result = await cache.init();
+			expect(result).toBeUndefined();
+		});
+		it("should not modify the instance state", async () => {
+			const initialState = { ...cache };
+			await cache.init();
+			expect(cache).toEqual(initialState);
+		});
 	});
 
 	describe("Auxiliary Functions", () => {
 		it("should initialize with default options when constructed without parameters", () => {
 			let storageType = type;
-			if (type === StorageType.Auto) {
+			if (type === StorageEngine.Auto) {
 				storageType = cache.info.options.storage;
 			}
 			expect(cache.info).toEqual({
-				dataBase: "HybridWebCache",
+				dataBase: "hwc",
 				size: "0b",
 				options: {
 					ttl: 1 * 60 * 60 * 1000,
 					removeExpired: true,
-					storage: storageType
+					storage: storageType,
 				},
 			});
 
@@ -48,29 +65,38 @@ describe.each(strategies)("HybridWebCache with $name Strategy", ({ type }) => {
 			expect(cache.bytes).toBeGreaterThanOrEqual(50);
 			expect(cache.info.size).toBeDefined();
 
+			cache.setSync("persons", null);
+			expect(cache.length).toBe(1);
+			expect(cache.bytes).toBeGreaterThanOrEqual(50);
+			expect(cache.info.size).toBeDefined();
+
 			cache.unsetSync("persons");
 			expect(cache.getJsonSync()).toBeNull();
 		});
 	});
 
 	describe("set and get (Async/Sync)", () => {
-		it('throws an error when keyPath is undefined or null', async () => {
-			await expect(cache.set(undefined as any, null)).rejects.toThrowError('KeyPath cannot be undefined or null.');
-    		await expect(cache.set(null as any, null)).rejects.toThrowError('KeyPath cannot be undefined or null.');
-
-    		await expect(cache.get(undefined as any)).rejects.toThrowError('KeyPath cannot be undefined or null.');
-    		await expect(cache.get(null as any)).rejects.toThrowError('KeyPath cannot be undefined or null.');
-  		});
-		it('throws an error when keyPath is undefined or null using sync method', () => {
-			expect(() => cache.setSync(undefined as any, null)).toThrowError('KeyPath cannot be undefined or null.');
-			expect(() => cache.setSync(null as any, null)).toThrowError('KeyPath cannot be undefined or null.');
-
-			expect(() => cache.getSync(undefined as any)).toThrowError('KeyPath cannot be undefined or null.');
-			expect(() => cache.getSync(null as any)).toThrowError('KeyPath cannot be undefined or null.');
+		beforeEach(async () => {
+			await cache.unset();
 		});
 
-		 it('returns undefined when the key does not exist in storage', async () => {
-			const keyPath = 'non-existent-key';
+		it("throws an error when keyPath is undefined or null", async () => {
+			await expect(cache.set(undefined as any, null)).rejects.toThrowError("KeyPath cannot be undefined or null.");
+			await expect(cache.set(null as any, null)).rejects.toThrowError("KeyPath cannot be undefined or null.");
+
+			await expect(cache.get(undefined as any)).rejects.toThrowError("KeyPath cannot be undefined or null.");
+			await expect(cache.get(null as any)).rejects.toThrowError("KeyPath cannot be undefined or null.");
+		});
+		it("throws an error when keyPath is undefined or null using sync method", () => {
+			expect(() => cache.setSync(undefined as any, null)).toThrowError("KeyPath cannot be undefined or null.");
+			expect(() => cache.setSync(null as any, null)).toThrowError("KeyPath cannot be undefined or null.");
+
+			expect(() => cache.getSync(undefined as any)).toThrowError("KeyPath cannot be undefined or null.");
+			expect(() => cache.getSync(null as any)).toThrowError("KeyPath cannot be undefined or null.");
+		});
+
+		it("returns undefined when the key does not exist in storage", async () => {
+			const keyPath = "non-existent-key";
 
 			expect(await cache.get(keyPath)).toBeUndefined();
 			expect(cache.getSync(keyPath)).toBeUndefined();
@@ -287,6 +313,10 @@ describe.each(strategies)("HybridWebCache with $name Strategy", ({ type }) => {
 	});
 
 	describe("getAll (Async/Sync)", () => {
+		beforeEach(async () => {
+			await cache.unset();
+		});
+
 		it("should return null if no items in storage", async () => {
 			await cache.unset();
 			const map = await cache.getAll();
@@ -433,15 +463,18 @@ describe.each(strategies)("HybridWebCache with $name Strategy", ({ type }) => {
 		});
 
 		it("should return null when no items are in storage", async () => {
+			await cache.unset();
 			const result = await cache.getJson();
 			expect(result).toBeNull();
 		});
 		it("should return null when no items are in storage using sync method", async () => {
+			cache.unsetSync();
 			const result = cache.getJsonSync();
 			expect(result).toBeNull();
 		});
 
 		it("should return null when all items are expired and removed", async () => {
+			await cache.unset();
 			await cache.set("key1", "value1", { seconds: 0.0001 }); // 1ms TTL
 
 			await new Promise((resolve) => setTimeout(resolve, 5)); // Wait for TTL to expire
@@ -449,6 +482,7 @@ describe.each(strategies)("HybridWebCache with $name Strategy", ({ type }) => {
 			expect(result).toBeNull();
 		});
 		it("should return null when all items are expired and removed using sync method", async () => {
+			cache.unsetSync();
 			cache.setSync("key1", "value1", { seconds: 0.0001 }); // 1ms TTL
 
 			await new Promise((resolve) => setTimeout(resolve, 5)); // Wait for TTL to expire
@@ -462,6 +496,7 @@ describe.each(strategies)("HybridWebCache with $name Strategy", ({ type }) => {
 			expect(result).toEqual({ key1: null });
 		});
 		it("should handle null values using sync method", () => {
+			cache.unsetSync();
 			cache.setSync("key1", null);
 			const result = cache.getJsonSync();
 			expect(result).toEqual({ key1: null });
@@ -469,9 +504,6 @@ describe.each(strategies)("HybridWebCache with $name Strategy", ({ type }) => {
 	});
 
 	describe("has (Async/Sync)", () => {
-		afterAll(async () => {
-			await cache.unset();
-		});
 
 		it("throws an error if KeyPath is undefined or null", async () => {
 			await expect(cache.has(undefined as any)).rejects.toThrowError("KeyPath cannot be undefined or null.");
@@ -526,19 +558,19 @@ describe.each(strategies)("HybridWebCache with $name Strategy", ({ type }) => {
 	});
 
 	describe("unset (Async/Sync)", () => {
-		beforeAll(() => {
-			cache = new HybridWebCache();
+		beforeEach(async () => {
+			await cache.unset();
 		});
 
 		it("should return false when storage is empty", async () => {
 			expect(await cache.unset()).toBe(false);
 			expect(cache.unsetSync()).toBe(false);
 		});
-		it('should return false when keyPath does not exist', async () => {
+		it("should return false when keyPath does not exist", async () => {
 			await cache.set("key1", "value1");
-    		expect(await cache.unset('non-existent-key')).toBe(false);
-    		expect(cache.unsetSync('non-existent-key')).toBe(false);
-  		});
+			expect(await cache.unset("non-existent-key")).toBe(false);
+			expect(cache.unsetSync("non-existent-key")).toBe(false);
+		});
 
 		it("should unset all key values when storage has some key-value pairs", async () => {
 			await cache.set("key1", "value1");
@@ -604,6 +636,7 @@ describe.each(strategies)("HybridWebCache with $name Strategy", ({ type }) => {
 	});
 
 	describe("resetWith (Async/Sync)", () => {
+
 		it("should reset with single key-value pair", async () => {
 			const keyValues = { foo: "bar" };
 			await cache.resetWith(keyValues);
@@ -630,7 +663,7 @@ describe.each(strategies)("HybridWebCache with $name Strategy", ({ type }) => {
 
 		it("should reset with TTL", async () => {
 			const keyValues = { foo: "bar" };
-			const ttl = { seconds: 0.0003 }; // 3ms
+			const ttl = { seconds: 0.01 }; // 100ms
 			await cache.resetWith(keyValues, ttl);
 
 			let dataSet = await cache.get("foo", false);
@@ -638,15 +671,15 @@ describe.each(strategies)("HybridWebCache with $name Strategy", ({ type }) => {
 			expect(dataSet?.value).toBe("bar");
 			expect(dataSet?.isExpired).toBe(false);
 
-			// Wait for 5ms to ensure TTL expires
-			await new Promise((resolve) => setTimeout(resolve, 5));
+			// Wait for 200ms to ensure TTL expires
+			await new Promise((resolve) => setTimeout(resolve, 200));
 
 			dataSet = await cache.get("foo", false);
 			expect(dataSet?.isExpired).toBe(true);
 		});
 		it("should reset sync with TTL", async () => {
 			const keyValues = { fooSync: "bar" };
-			const ttl = { seconds: 0.0003 }; // 3ms
+			const ttl = { seconds: 0.01 }; // 100ms
 			cache.resetWithSync(keyValues, ttl);
 
 			let dataSet = await cache.get("fooSync", false);
@@ -654,8 +687,8 @@ describe.each(strategies)("HybridWebCache with $name Strategy", ({ type }) => {
 			expect(dataSet?.value).toBe("bar");
 			expect(dataSet?.isExpired).toBe(false);
 
-			// Wait for 5ms to ensure TTL expires
-			await new Promise((resolve) => setTimeout(resolve, 5));
+			// Wait for 200ms to ensure TTL expires
+			await new Promise((resolve) => setTimeout(resolve, 200));
 
 			dataSet = await cache.get("fooSync", false);
 			expect(dataSet?.isExpired).toBe(true);
@@ -693,11 +726,11 @@ describe.each(strategies)("HybridWebCache with $name Strategy", ({ type }) => {
 	});
 });
 
-function mockStorage(type: StorageType) {
+function mockStorage(type: StorageEngine) {
 	switch (type) {
-		case StorageType.LocalStorage:
-		case StorageType.SessionStorage: {
-			const storage = type === StorageType.LocalStorage ? "localStorage" : "sessionStorage";
+		case StorageEngine.LocalStorage:
+		case StorageEngine.SessionStorage: {
+			const storage = type === StorageEngine.LocalStorage ? "localStorage" : "sessionStorage";
 			Object.defineProperty(window, storage, {
 				value: (() => {
 					let store: Record<string, string> = {};
@@ -716,12 +749,12 @@ function mockStorage(type: StorageType) {
 			});
 
 			// Clear localStorage before each test
-			if (type === StorageType.LocalStorage) localStorage.clear();
+			if (type === StorageEngine.LocalStorage) localStorage.clear();
 			else sessionStorage.clear();
 			break;
 		}
 
-		case StorageType.IndexedDB:
+		case StorageEngine.IndexedDB:
 			Object.defineProperty(window, "indexedDB", {
 				value: new FDBFactory(),
 				writable: true,
