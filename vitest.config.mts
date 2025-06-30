@@ -9,7 +9,7 @@ export default defineConfig({
 			reporter: ["text", "text-summary", "lcov", "json-summary", "json", "html"],
 			reportsDirectory: "./coverage",
 			include: ["src"],
-			exclude: ["src/**/*.d.ts"],
+			exclude: ["src/**/*.d.ts", "src/core/models/**"],
 		},
 	},
 });
