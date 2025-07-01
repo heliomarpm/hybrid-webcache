@@ -138,11 +138,12 @@ export class IndexedDBStrategy implements StorageBase {
 		await this.openDB(); // Garante que o DB esteja aberto
 		if (!this.db) throw new Error("Database not initialized"); // Deve ser inatingível se openDB resolver
 
+		const transaction = this.db.transaction(this.storeName, "readonly");
+		const store = transaction.objectStore(this.storeName);
+		const request = store.openCursor();
+
 		return new Promise((resolve, reject) => {
 			const result = new Map<string, DataModel<T>>();
-			const transaction = this.db!.transaction(this.storeName, "readonly");
-			const store = transaction.objectStore(this.storeName);
-			const request = store.openCursor();
 
 			request.onsuccess = (event) => {
 				const cursor = (event.target as IDBRequest<IDBCursorWithValue>).result;
