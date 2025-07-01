@@ -12,13 +12,14 @@ export const Utils = {
 	 * @returns The extracted primary key as a string.
 	 */
 	getKey(keyPath: KeyPath): string {
-		let key = keyPath.toString();
+		let key = "";
 
 		// Verificar se keyPath é um array
 		if (Array.isArray(keyPath)) {
 			// Retorna a primeira chave do array (ex: ["keyName", "subKey"] -> "keyName")
 			key = keyPath.length > 0 ? String(keyPath[0]) : "";
 		} else {
+			key = keyPath.toString();
 			// Verificar se é uma string com formato de indexação (ex: "keyName[0].name")
 			const match = keyPath.match(/^[^.[\]]+/);
 			if (match) {
@@ -28,7 +29,6 @@ export const Utils = {
 		}
 
 		return key;
-		// return Array.isArray(keyPath) ? `${this.baseName}:${keyPath[0]}` : `${this.baseName}:${keyPath.toString().split(".")[0]}`;
 	},
 
 	/**

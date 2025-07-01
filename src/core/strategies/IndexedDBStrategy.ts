@@ -17,13 +17,6 @@ export class IndexedDBStrategy implements StorageBase {
 
 		this.channel = new BroadcastChannel(`${this.baseName}.${this.storeName}`);
 		this.channel.onmessage = this.handleSyncEvent.bind(this);
-
-		// Automatically open the database and load memory cache when the instance is created
-		// (async () => {
-		// 	await this.openDB();
-		// 	if (!this.db) throw new Error("IndexedDB not open, cannot load memory cache.");
-		// 	await this.getAll(); // Load existing data into memory cache
-		// })();
 	}
 
 	private handleSyncEvent(event: MessageEvent): void {
@@ -93,15 +86,10 @@ export class IndexedDBStrategy implements StorageBase {
 		const request = operation(store);
 
 		return new Promise((resolve, reject) => {
-			request.onsuccess = () => {
-				// resolve(transactionMode === "readonly" ? request.result : undefined);
-				resolve(request.result);
-			};
+			request.onsuccess = () => resolve(request.result);
 			request.onerror = () => reject(request.error);
 			transaction.onabort = () => reject(transaction.error || new Error("Transaction aborted"));
-			transaction.oncomplete = () => {
-				/* Transaction complete success */
-			};
+			// transaction.oncomplete = () => console.log("Transaction complete success");
 		});
 	}
 
@@ -125,10 +113,7 @@ export class IndexedDBStrategy implements StorageBase {
 		this.channel.postMessage({ action: "sync", key, value: data });
 
 		// this.executeQueue("readwrite", (store) => store.put({ key, ...data }));
-		this.execute("readwrite", (store) => store.put({ key, ...data })).catch((error) => {
-			console.error(`Failed to setSync key ${key} in IndexedDB`, error);
-			throw new Error(`Failed to setSync key ${key} in IndexedDB: ${error}`);
-		});
+		this.execute("readwrite", (store) => store.put({ key, ...data }));
 	}
 
 	async get<T extends ValueType>(key: string): Promise<DataModel<T> | undefined> {
@@ -217,10 +202,7 @@ export class IndexedDBStrategy implements StorageBase {
 			if (this.memoryCache.delete(key)) {
 				this.channel.postMessage({ action: "unset", key, value: undefined });
 				// this.executeQueue("readwrite", (store) => store.delete(key));
-				this.execute("readwrite", (store) => store.delete(key)).catch((error) => {
-					console.error(`Failed to unsetSync key ${key} in IndexedDB`, error);
-					throw new Error(`Failed to unsetSync key ${key} in IndexedDB: ${error}`);
-				});
+				this.execute("readwrite", (store) => store.delete(key));
 				return true;
 			}
 			return false;
@@ -229,10 +211,7 @@ export class IndexedDBStrategy implements StorageBase {
 		this.memoryCache.clear();
 		this.channel.postMessage({ action: "clear", key: undefined, value: undefined });
 		// this.executeQueue("readwrite", (store) => store.clear());
-		this.execute("readwrite", (store) => store.clear()).catch((error) => {
-			console.error("Failed to unsetSync all keys in IndexedDB", error);
-			throw new Error(`Failed to unsetSync all keys in IndexedDB: ${error}`);
-		});
+		this.execute("readwrite", (store) => store.clear());
 
 		return true;
 	}

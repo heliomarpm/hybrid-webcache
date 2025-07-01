@@ -38,7 +38,7 @@ export class MemoryStrategy implements StorageBase {
 	}
 
 	unset(key?: string): Promise<boolean> {
-		return Promise.resolve(!key ? this.unsetSync() : this.unsetSync(key));
+		return Promise.resolve(this.unsetSync(key));
 	}
 
 	unsetSync(key?: string): boolean {
