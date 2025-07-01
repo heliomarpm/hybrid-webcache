@@ -44,19 +44,24 @@
 
 ## 🎯 About
 
-`HybridWebCache` is a library for efficient cache management in web applications, supporting multiple storage mechanisms transparently (LocalStorage, IndexedDB, SessionStorage and memory). With TTL (Time-To-Live) support, the library helps optimize performance by storing and retrieving data efficiently.
+`HybridWebCache` is a library for efficient cache management in web applications, supporting multiple storage mechanisms transparently (LocalStorage, IndexedDB, SessionStorage, and memory). With TTL (Time-To-Live) support, the library helps optimize performance by storing and retrieving data efficiently.
 
 ## 🚀 Features
 
-- Hybrid caching 
-  - LocalStorage
-  - SessionStorage
-  - IndexedDB
-  - Memory (fallback)
+- Hybrid caching: Allows switching between multiple storage engines dynamically, using the most appropriate one for each scenario (_IndexedDB, LocalStorage, SessionStorage or in-memory_).
+  - `IndexedDB`: Uses IndexedDB for caching, **synchronized between tabs via _BroadcastChannel_**.
+  - `LocalStorage`: Uses the browser's local storage, **synchronized between tabs via _BroadcastChannel_**.
+  - `SessionStorage`: Uses the browser's session storage, **isolated per tab**. Data persists only for the duration of the tab's lifecycle.
+  - `Memory`: Uses in-memory storage for caching, **synchronized only with the instance itself**.
+- Provides a unified interface for caching data using different storage engines.
+- TTL (Time-To-Live) support
 - Automatic expiration management (TTL)
-- TypeScript support
-- PWA-compatible
+- Supports deep key paths like `user.name` or `['user', 'name']` for structured data manipulation.
+- Tab synchronization via BroadcastChannel (when applicable)
+- Asynchronous and synchronous methods
 - Simple integration with modern frameworks
+- PWA-compatible
+- TypeScript support
 
 ## 📁 Project structure:
 
@@ -89,7 +94,7 @@ import { HybridWebCache } from 'hybrid-webcache';
 
 const cache = new HybridWebCache();
 
-await cache.set('sessionToken', 'abc123');
+await cache.set('sessionToken', 'abc123', { minutes: 3 });
 const token = await cache.get<string>('sessionToken');
 
 console.log(`Token: ${token.value}`); // Output: Token: abc123
@@ -103,25 +108,24 @@ To create a HybridWebCache instance, you need to provide a name for the database
 const cache = new HybridWebCache('MyApp', {
   ttl: { minutes: 10, days: 1 },
   removeExpired: true,
-  storage: StorageType.Auto
+  storage: StorageEngine.Auto
 });
 ```
-
-### Main functionalities
-- Provides a unified interface for caching data using different storage backends.
-- Supports TTL for cache entries to automatically expire data.
-- Offers both asynchronous and synchronous methods for setting, getting, and removing cache entries.
+> [!NOTE] 
+> For `StorageEngine.IndexedDB`, call `await cache.init()` after construction if you want to call synchronous methods.
 
 ___
 ### Methods
 - `constructor`: Initializes the cache with a base name and options, determining the storage engine.
+  - **Note**: For IndexedDB, is necessary call `await init()` after constructor, for using sync methods.
 - `set`/`setSync`: Stores a value in the cache with an optional TTL.
+  - **Note**: For `IndexedDB`, `setSync` and `unsetSync` methods update the in-memory cache immediately, but disk persistence operations are queued and executed asynchronously.
 - `get`/`getSync`: Retrieves a value from the cache, optionally removing expired entries.
-- `unset`/`unsetSync`: Removes a value from the cache.
-- `has`/`hasSync`: Checks if a key path exists
-- `getAll`/`getAllSync`: Retrieves all cache entries, optionally removing expired ones.
-- `getJson`/`getJsonSync`: Returns all cache entries as a JSON object, optionally removing expired ones.
-- `resetWith`/`resetWithSync`: Clears the cache and sets new key-value pairs.
+- `unset`/`unsetSync`: Remove a key or clear all
+- `has`/`hasSync`: 	Check key existence
+- `getAll`/`getAllSync`:  Retrieves all entries as a `Map` of key-value pairs, where each value is an object containing the value, expiration time, and expiration status. Optionally removes expired entries.
+- `getJson`/`getJsonSync`: Returns all entries as a JSON object, optionally removing expired entries.
+- `resetWith`/`resetWithSync`: Reset all entries with new data
 
 ___
 ### Fields
@@ -132,53 +136,65 @@ ___
 ___
 ### Options
 
-| Parameter     | Type          | Description 
-| ---           | ---           | ---
-| `ttl`           | `TTLType`       | Sets the time to live for data in the cache. Can be in minutes, hours, or days.
+| Parameter       | Type            | Description 
+| ---             | ---             | ---
+| `ttl`           | `TTL`           | Sets the time to live for data in the cache. Can be in minutes, hours, or days.
 | `removeExpired` | `boolean`       | Automatically removes expired items when attempting to access them.
-| `storage`       | `StorageType`   | `Auto`, `LocalStorage`, `IndexedDB`, `SessionStorage` or `Memory`. Sets the storage engine. Auto selects the best available.
+| `storage`       | `StorageEngine` | `Auto`, `LocalStorage`, `IndexedDB`, `SessionStorage` or `Memory`. Sets the storage engine. Auto selects the best available.
+|                 | `Auto`          | Automatically selects the best available storage engine based on browser support. 
+|                 | `LocalStorage`  | Uses the browser's local storage for caching, with synchronization between **tabs** via BroadcastChannel.
+|                 | `IndexedDB`     | Uses IndexedDB for caching, with synchronization between **tabs** via BroadcastChannel.
+|                 | `SessionStorage`| Uses the browser's session storage for caching, **isolated per tab**. Data persists only for the duration of the tab's lifecycle..
+|                 | `Memory`        | Uses in-memory storage for caching, synchronization only with the **instance itself**.
 
 ___
 ### Types Used
 
 ```ts
-enum StorageType {
-  Auto,
-  LocalStorage,
-  IndexedDB,
-  SessionStorage,
-  Memory
-}
+enum StorageEngine {Auto, LocalStorage, IndexedDB, SessionStorage, Memory }
 
-type ValueTypes = null | string | number | boolean | object | DictionaryType | ValueTypes[];
-type DictionaryType = { [key: string]: ValueTypes };
+type ValueType = null | string | number | boolean | object | DictionaryType | ValueType[];
+type DictionaryType = { [key: string]: ValueType };
 
-type KeyValues<T extends ValueTypes> = Record<string, T>;
+type KeyValues<T extends ValueType> = Record<string, T>;
 type KeyPath = string | Array<string>;
 
-type TTLType = number | { seconds?: number; minutes?: number; hours?: number; days?: number };
+type TTL = number | { seconds?: number; minutes?: number; hours?: number; days?: number };
 
-type OptionsType = {
-  storage: StorageType;
-  ttl: Partial<TTLType>;
+type Options = {
+  storage: StorageEngine;
+  ttl: Partial<TTL>;
   removeExpired: boolean;
 };
 
-interface DataSetType<T> {
+interface DataModel<T> {
   value: T;
   expiresAt: number;
 }
 
-interface DataGetType<T> extends DataSetType<T> {
+interface DataGetModel<T> extends DataModel<T> {
   isExpired: boolean;
 }
 
 ```
 ___
 
-### Usage examples
-```ts
+### 📥 Storage and Sync
 
+Engine	        | Persistence | Shared across tabs  | TTL   | Sync
+---		          | ---		      | ---                 | ---   | ---
+IndexedDB	      | ✅          | ✅                 | ✅   | ✅
+LocalStorage	  | ✅	         | ✅                 | ✅   | ✅
+SessionStorage  |	✅(per tab) | ⛔                 | ✅   | ✅
+Memory	        | ⛔          | ⛔                 | ✅   | ✅
+
+> [!NOTE] Synchronous IndexedDB and LocalStorage uses in-memory cache synchronized via BroadcastChannel
+
+### 📚 Usage examples
+
+#### Initialization
+
+```ts
 /**
  * Default Options
  * 
@@ -186,131 +202,92 @@ ___
  * {
  *   ttl: { seconds: 0, minutes: 0, hours: 1, days: 0 },
  *   removeExpired: true,
- *   storage: StorageType.Auto
+ *   storage: StorageEngine.Auto
  * }
  */
-const cache = new HybridWebCache()
--- or --
+const cache = new HybridWebCache();
+```
+
+#### Initialization with options
+
+```ts
 // create an instance for IndexedDB with TTL of 10 minutes and removal of expired items to default
-const cache = new HybridWebCache('myCache', { storage: StorageType.IndexedDB, ttl: 10 * 60 * 1000, removeExpired: true });
+const cache = new HybridWebCache('myCache', { storage: StorageEngine.IndexedDB, ttl: 10 * 60 * 1000, removeExpired: true });
+```
 
-await cache.set('userProfile', { name: 'Jane', age: 25 });
+#### Set and Get simple
 
+```ts
+await cache.set('token', 'abc123');
+const token = await cache.get('token').value;
+
+console.log(`Token: ${token}`); // Output: Token: abc123
+```
+
+#### Set and Get with TTL customizado
+
+```ts
+// Set a value with TTL of 30 seconds
+await cache.set('userProfile', { name: 'Jane', age: 25 }, { seconds: 30 }); 
 const profile = await cache.get<{ name: string; age: number }>('userProfile');
 
-console.log(`User: ${profile.value.name}, Age: ${profile.value.age}`); // Output: User: Jane, Age: 25
+console.log(`User: ${profile.value.name}, Age: ${profile.value.age}`); 
+// Output: User: Jane, Age: 25
 
-
-// Set a value with a TTL of 1 hour
-await cache.set('user.firstName', 'John', { hours: 1 });
-cache.setSync('user.lastName', 'Doe'); //TTL = 10 minutes
-
-// Retrieve the value
-const userName = await cache.get('user.firstName');
-// Outputs -> '{value: 'John', expiresAt: 999999999, isExpired: false}'
-
-const user = cache.getSync('user').value;
-// Outputs -> {user: {firstName: 'John', lastName: 'Doe' }}
-
-cache.setSync(['user', 'age'], 33);
-const user = cache.getSync('user').value;
-// Outputs -> {user: {firstName: 'John', lastName: 'Doe', age: 33 }}
-
-// Check if a key exists
-const hasUser = await cache.has('user.name');
-console.log(hasUser); // Outputs: true
-
-// Remove a key
-await cache.unset('user.name');
-
-const color =
-{
-  "name": "cerulean",
-  "code": {
-    "hex": "#003BE6",
-    "rgb": [0, 179, 230]
-  }
-}
-
-// Set a key-value
-cache.setSync(['settings', 'language'], "pt-Br");
-cache.getSync(['settings', 'language']).value;	
-// => 'pt-Br'
-
-// Set/Add a key settings
-cache.setSync("settings.default", "en");
-cache.getSync("settings").value;
-// => { "language": "pt-Br", "default": "en" }
-
-cache.getAllSync();	
-// => { "settings": {value:{ "language": "pt-Br", "default": "en" },  expiresAt: 1733628804164, isExpired: false }}
-
-// replace key settings
-cache.setSync("settings", { theme: "dark"});
-cache.getSync("settings").value;
-// => { "theme": "dark" }
-
-// Added a new key-value
-cache.setSync("color", color);
-cache.getSync().value;
-// => { "theme": "dark", "color": { "name": "cerulean", "code": { "rgb": [0, 179, 230], "hex": "#003BE6" } } }
-
-// Replace all key-values
-cache.setSync(color);
-cache.getSync().value;
-// => { "name": "cerulean", "code": { "rgb": [0, 179, 230], "hex": "#003BE6" } }
-
-// Unset a key-value
-cache.unsetSync();
-cache.getSync().value;
-// => {}
-
-// Set a new key-values
-cache.setSync("color", color);
-cache.getSync().value;	
-// => { "color": { "name": "cerulean", "code": { "rgb": [0, 179, 230], "hex": "#003BE6" } } }
-
-cache.getSync("color.name").value;
-// => "cerulean"
-
-cache.getSync("color.code.hex").value;
-// => "#003BE6"
-
-cache.getSync(["color", "code"]).value;
--- or --
-cache.getSync("color.code").value;
-// => { "hex": "#003BE6", "rgb": [0, 179, 230] }
-
-cache.getSync(["color", "hue"]).value;
-// => undefined
-
-// Set a key-value pair
-await cache.set("color.name", "sapphire");
-
-// Get the value at a specific key path
-const value = await cache.get("color.name").value;
-// => "sapphire"
-
-// Check if a key path exists
-const exists = await cache.has("color.name");
-// => true
-
-// Remove a key-value pair
-await cache.unset("color.name");
-await cache.getAll();
-// Result Map(key, value) => { key: "code", value: {expiresAt: 1733628804164, isExpired: false, value: {"rgb": [0, 179, 230], "hex": "#003BE6" } } }
-
-await cache.getJson();
-// => {"code": {"rgb": [0, 179, 230], "hex": "#003BE6"} }
-
-const exists = cache.hasSync("color.name");
-// => false
-
-cache.unset().then(() => {
-  console.log("All key-value pairs have been removed.");
-})
-
+console.log(profile); 
+// Output: { value: { name: 'Jane', age: 25 }, expiresAt: 999999999, isExpired: false }
 ```
+
+#### Set and Get with Deep Key path
+
+```ts
+await cache.set('user.profile.name', 'Jane');
+const name = await cache.get('user.profile.name');
+
+console.log(`Name: ${name}`); // Output: Name: Jane
+
+-- or --
+await cache.set(['user', 'profile', 'name'], 'Jane');
+const name = await cache.get(['user', 'profile', 'name']);
+
+console.log(`Name: ${name}`); // Output: Name: Jane
+```
+
+#### Check if a key exists
+
+```ts
+await cache.has('user.profile.name'); // true
+```
+
+#### Remove a key
+
+```ts
+await cache.unset('user.profile.name');
+```
+
+#### Remove all keys
+```ts
+await cache.unset();
+```
+
+#### Get Map of all keys and values 
+
+```ts
+const allData = await cache.getAll(); // Map<string, DataGetModel<ValueType>>
+
+// Remove keys that have expired
+const allDataWithoutExpired = await cache.getAll(true);
+```
+
+#### Get JSON of all keys and values 
+
+```ts
+const allData = await cache.getJson(); // { [key: string]: ValueType }
+
+// Remove keys that have expired
+const allDataWithoutExpired = await cache.getJson(true); // { [key: string]: ValueType }
+```
+
 
 ## Dependencies
 
