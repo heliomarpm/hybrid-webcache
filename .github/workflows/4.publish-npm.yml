@@ -32,17 +32,17 @@ jobs:
 
           if [ -z "$PREVIOUS_TAG" ]; then
             echo "✅ Nenhuma tag anterior encontrada. Assumindo que é a primeira release."
-            echo "has_changes=true" >> $GITHUB_OUTPUT
+            echo "has_code_changes=true" >> $GITHUB_OUTPUT
           else
             echo "Release anterior: $PREVIOUS_TAG"
             echo "Verificando alterações nos caminhos: '$PATHS_TO_CHECK'"
 
             if git diff --quiet $PREVIOUS_TAG $CURRENT_TAG -- $PATHS_TO_CHECK; then
               echo "⚠️ Nenhuma alteração de código detectada. Publicação ignorada."
-              echo "has_changes=false" >> $GITHUB_OUTPUT
+              echo "has_code_changes=false" >> $GITHUB_OUTPUT
             else
               echo "✅ Alterações de código detectadas. A publicação irá prosseguir."
-              echo "has_changes=true" >> $GITHUB_OUTPUT
+              echo "has_code_changes=true" >> $GITHUB_OUTPUT
             fi
           fi
 
