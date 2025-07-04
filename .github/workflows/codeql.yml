@@ -12,6 +12,7 @@
 name: "CodeQL"
 
 on:
+  workflow_dispatch:  # permite execução manual
   push:
     branches:
       - main
@@ -25,7 +26,7 @@ on:
       - "**/*.md"
       - ".github/**"
       - "!.github/workflows/codeql.yml"
-      
+
   pull_request:
     branches:
       - main

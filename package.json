@@ -35,30 +35,75 @@
     "crud"
   ],
   "scripts": {
+    "check": "biome check --write",
+    "lint": "biome lint --write",
+    "format": "biome format --write .",
+    "test": "vitest --no-watch --reporter=verbose",
+    "test:c": "vitest --no-watch --coverage",
+    "prepare": "husky && echo 'Hooks configurados!'",
+    "commit": "git-cz",
     "prebuild": "rimraf dist",
     "build:dev": "tsc -p tsconfig.json",
     "build": "tsc -p tsconfig.prod.json",
-    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
-    "format:check": "prettier --check \"src/**/*.ts\" \"test/**/*.ts\"",
-    "test": "jest --detectOpenHandles --silent=false",
-    "test:c": "jest --detectOpenHandles --coverage",
-    "pub:release": "node ./node_modules/gh_deploy/index.mjs"
+    "predocs": "typedoc",
+    "docs": "vitepress build .docs",
+    "docs:dev": "npm run predocs && vitepress dev .docs",
+    "clean": "rm -rf node_modules coverage dist .docs/.vitepress/cache .docs/.vitepress/dist .docs/app",
+    "postclean": "npm cache clean --force"
   },
   "dependencies": {
     "lodash": "^4.17.21"
   },
   "devDependencies": {
-    "@trivago/prettier-plugin-sort-imports": "^5.2.0",
-    "@types/jest": "^29.5.14",
+    "@biomejs/biome": "^2.0.6",
+    "@commitlint/cli": "^19.8.1",
+    "@commitlint/config-conventional": "^19.8.1",
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/commit-analyzer": "^13.0.1",
+    "@semantic-release/git": "^10.0.1",
+    "@semantic-release/github": "^11.0.3",
     "@types/lodash": "^4.17.13",
-    "eslint": "^9.17.0",
+    "@types/node": "^24.0.8",
+    "@vitest/coverage-v8": "^3.2.4",
+    "commitizen": "^4.3.1",
+    "cz-conventional-changelog": "^3.3.0",
     "fake-indexeddb": "^6.0.0",
-    "gh_deploy": "github:heliomarpm/gh_deploy",
-    "jest": "^29.7.0",
-    "jest-environment-jsdom": "^29.7.0",
-    "prettier": "^3.4.2",
+    "husky": "^9.1.7",
+    "jsdom": "^26.1.0",
+    "lint-staged": "^16.1.2",
     "rimraf": "^6.0.1",
-    "ts-jest": "^29.2.5",
-    "typescript": "^5.7.2"
+    "semantic-release": "^24.2.6",
+    "typedoc": "^0.28.7",
+    "typedoc-vitepress-theme": "^1.1.2",
+    "typescript": "^5.7.2",
+    "vitepress": "^1.6.3",
+    "vitest": "^3.2.4"
+  },
+  "lint-staged": {
+    "*.{ts,js,mts,json,jsonc,yml}": [
+      "biome check --write --files-ignore-unknown=true --no-errors-on-unmatched"
+    ]
+  },
+  "config": {
+    "commitizen": {
+      "path": "cz-conventional-changelog"
+    }
+  },
+  "commitlint": {
+    "extends": [
+      "@commitlint/config-conventional"
+    ],
+    "rules": {
+      "header-max-length": [
+        1,
+        "always",
+        100
+      ],
+      "body-max-line-length": [
+        1,
+        "always",
+        100
+      ]
+    }
   }
 }

@@ -1,20 +1,33 @@
-## Summary of the Pull Request
-Thanks for contributing!
+## 📋 Description
 
-Please be sure you are following the guidelines at 
-https://github.com/heliomarpm/hybrid-webcache/blob/master/docs/CONTRIBUTING.md
+Follow the [contribution guidelines](./blob/main/docs/CONTRIBUTING.md). \
+Briefly describe what this PR does (e.g., fixes, features, improvements).
 
-**What is this about:**
+## ✅ Change Type
 
-**What is included in the PR:** 
+- [ ] 🐛 Bug fix
+- [ ] ✨ New feature
+- [ ] ⚠️ Breaking change
+- [ ] 🧹 Refactor or code cleanup
+- [ ] 📝 Documentation update
+- [ ] 🔧 Other (describe below)
 
-**How does someone test / validate:** 
+## 🧪 How to Test
 
-## Quality ChecklistV
+Describe how to test this change.  
+_If applicable, include screenshots or terminal commands._
 
-- [ ] **Linked issue:** #xxx
-- [ ] **Tests:** Added/updated and all pass
-- [ ] **Localization:** All end user facing strings can be localized
-- [ ] **Docs:** Added/ updated
-<!-- - [ ] **Communication:** I've discussed this with core contributors in the issue.  -->
-<!-- - [ ] **Installer:** Added/updated and all pass -->
+## 🔗 Related Issues
+
+Link any related issues (e.g., `Closes #42`, `Fixes #99`).
+
+## 🚨 Checklist
+
+- [ ] Code follows project standards
+- [ ] Tests added/updated (if applicable)
+- [ ] Docs updated (if needed)
+- [ ] Changes tested locally
+
+---
+
+Thanks for your contribution! 💪🚀

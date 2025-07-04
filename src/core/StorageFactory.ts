@@ -1,32 +1,37 @@
-import { Utils } from './utils';
-import { StorageBase, StorageType } from './models';
-import { IndexedDBStrategy, LocalStorageStrategy, MemoryStrategy, SessionStorageStrategy } from './strategies';
+import { IndexedDBStrategy, LocalStorageStrategy, MemoryStrategy, SessionStorageStrategy } from "./strategies";
+import { type StorageBase, StorageEngine } from "./types";
+import { Utils } from "./utils";
 
-export class StorageFactory {
-	static createStorage(type: StorageType, baseName: string, storeName?: string): StorageBase {
+/** @ignore */
+class StorageFactory {
+	createStorage(type: StorageEngine, baseName: string, storeName?: string): StorageBase {
 		switch (type) {
-			case StorageType.SessionStorage:
-				if (!Utils.isSessionStorageAvailable()) throw new Error('SessionStorage is not available');
+			case StorageEngine.SessionStorage:
+				if (!Utils.isSessionStorageAvailable()) throw new Error("SessionStorage is not available");
 				return new SessionStorageStrategy(baseName);
-			case StorageType.LocalStorage:
-				if (!Utils.isLocalStorageAvailable()) throw new Error('LocalStorage is not available');
+			case StorageEngine.LocalStorage:
+				if (!Utils.isLocalStorageAvailable()) throw new Error("LocalStorage is not available");
 				return new LocalStorageStrategy(baseName);
-			case StorageType.IndexedDB:
-				if (!Utils.isIndexedDBAvailable()) throw new Error('IndexedDB is not available');
+			case StorageEngine.IndexedDB:
+				if (!Utils.isIndexedDBAvailable()) throw new Error("IndexedDB is not available");
 				return new IndexedDBStrategy(baseName, storeName);
-			case StorageType.Auto:
+			case StorageEngine.Auto:
 				if (Utils.isLocalStorageAvailable()) {
 					return new LocalStorageStrategy(baseName);
-				} else if (Utils.isIndexedDBAvailable()) {
-					return new IndexedDBStrategy(baseName, storeName);
-				} else if (Utils.isSessionStorageAvailable()) {
-					return new SessionStorageStrategy(baseName);
-				} else {
-					return new MemoryStrategy();
 				}
-			case StorageType.Memory:
+				if (Utils.isIndexedDBAvailable()) {
+					return new IndexedDBStrategy(baseName, storeName);
+				}
+				if (Utils.isSessionStorageAvailable()) {
+					return new SessionStorageStrategy(baseName);
+				}
+				return new MemoryStrategy();
+
 			default:
 				return new MemoryStrategy();
 		}
 	}
 }
+
+const storageFactory = new StorageFactory();
+export { storageFactory as StorageFactory };

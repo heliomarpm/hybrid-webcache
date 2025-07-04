@@ -1,10 +1,12 @@
 .*
-src
 docs
-node_modules
+src
 test
 tests
-dist
 coverage
 tsconfig.*
-jest.config.js
+*.config.*
+typedoc.json
+biome.json
+logo.png
+CHANGELOG.md

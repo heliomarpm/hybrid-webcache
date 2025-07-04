@@ -1,27 +1,34 @@
-import { StorageBase, DataGetType, DataSetType, StorageType, ValueTypes } from '../models';
+import type { DataModel, StorageBase, ValueType } from "../types";
+import { StorageEngine } from "../types";
 
+/** @ignore */
 export class MemoryStrategy implements StorageBase {
-	private storage: Map<string, any> = new Map();
+	private storage: Map<string, DataModel<ValueType>> = new Map();
 
-	set<T extends ValueTypes>(key: string, data: DataSetType<T>): Promise<void> {
+	/** @internal */
+	async init(): Promise<void> {
+		return Promise.resolve();
+	}
+
+	set<T extends ValueType>(key: string, data: DataModel<T>): Promise<void> {
 		return Promise.resolve(this.setSync(key, data));
 	}
-	setSync<T extends ValueTypes>(key: string, data: DataSetType<T>): void {
+	setSync<T extends ValueType>(key: string, data: DataModel<T>): void {
 		this.storage.set(key, data);
 	}
 
-	get<T extends ValueTypes>(key: string): Promise<DataGetType<T> | undefined> {
+	get<T extends ValueType>(key: string): Promise<DataModel<T> | undefined> {
 		return Promise.resolve(this.getSync(key));
 	}
-	getSync<T extends ValueTypes>(key: string): DataGetType<T> | undefined {
-		return this.storage.get(key);
+	getSync<T extends ValueType>(key: string): DataModel<T> | undefined {
+		return this.storage.get(key) as DataModel<T> | undefined;
 	}
 
-	getAll(): Promise<Map<string, DataGetType<unknown>> | null> {
-		return Promise.resolve(this.getAllSync());
+	getAll<T extends ValueType>(): Promise<Map<string, DataModel<T>> | null> {
+		return Promise.resolve(this.getAllSync<T>());
 	}
-	getAllSync(): Map<string, DataGetType<unknown>> | null {
-		return this.storage.size > 0 ? this.storage : null;
+	getAllSync<T extends ValueType>(): Map<string, DataModel<T>> | null {
+		return this.storage.size > 0 ? (this.storage as Map<string, DataModel<T>>) : null;
 	}
 
 	has(key: string): Promise<boolean> {
@@ -32,18 +39,17 @@ export class MemoryStrategy implements StorageBase {
 	}
 
 	unset(key?: string): Promise<boolean> {
-		return Promise.resolve(!key ? this.unsetSync() : this.unsetSync(key));
+		return Promise.resolve(this.unsetSync(key));
 	}
 
 	unsetSync(key?: string): boolean {
+		if (this.storage.size === 0) return false;
+
 		if (!key) {
-			if (this.storage.size > 0) {
-				this.storage.clear();
-			}
+			this.storage.clear();
 			return this.storage.size === 0;
-		} else {
-			return this.storage.delete(key);
 		}
+		return this.storage.delete(key);
 	}
 
 	get length(): number {
@@ -52,18 +58,19 @@ export class MemoryStrategy implements StorageBase {
 
 	get bytes(): number {
 		if (this.storage.size === 0) return 0;
-		// const obj = Object.fromEntries(this.storage);
-		// const jsonString = JSON.stringify(obj);
-		// return new TextEncoder().encode(jsonString).length;
+
 		let totalBytes = 0;
-		for (const [key, value] of this.storage) {
-			totalBytes += new Blob([key]).size;
-			totalBytes += new Blob([JSON.stringify(value)]).size;
-		}
+
+		const entries = Array.from(this.storage.entries());
+
+		entries.forEach(([key, value]) => {
+			totalBytes += new TextEncoder().encode(key).length;
+			totalBytes += new TextEncoder().encode(JSON.stringify(value)).length;
+		});
 		return totalBytes;
 	}
 
-	get type(): StorageType {
-		return StorageType.Memory;
+	get type(): StorageEngine {
+		return StorageEngine.Memory;
 	}
 }
