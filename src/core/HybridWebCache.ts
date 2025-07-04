@@ -1,8 +1,7 @@
 import { get as _get, set as _set, unset as _unset } from "lodash";
-
-import type { DataGetModel, DataModel, KeyPath, RecordType, Options, StorageBase, TTL, ValueType } from "./models";
-import { StorageEngine } from "./models";
 import { StorageFactory } from "./StorageFactory";
+import type { DataGetModel, DataModel, KeyPath, Options, RecordType, StorageBase, TTL, ValueType } from "./types";
+import { StorageEngine } from "./types";
 import { Utils } from "./utils";
 
 /**
@@ -13,7 +12,6 @@ const defaultOptions: Options = {
 	removeExpired: true,
 	storage: StorageEngine.Auto,
 };
-
 
 /**
  * Represents a hybrid web cache that supports both asynchronous and synchronous
@@ -170,13 +168,19 @@ export class HybridWebCache {
 	 *
 	 * To reset the cache, use [`resetWith()`|`resetWithSync()`].
 	 *
+	 * _**Note:**_ For `StorageType.IndexedDB`, remember to call .init() if you plan to use synchronous methods
+	 *
 	 * @param {string} [baseName='HybridWebCache'] - The base name of the cache.
-	 * @param {Partial<Options>} options=`{
-	 *  ttl: { seconds: 0, minutes: 0, hours: 1, days: 0 },
+	 * @param {Partial<Options>} options
+	 * @default
+	 * ```ts
+	 * //options
+	 * {
+	 * 	ttl: { seconds: 0, minutes: 0, hours: 1, days: 0 },
 	 * 	removeExpired: true,
 	 * 	storage: StorageType.Auto
-	 * }`
-	 *
+	 * }
+	 * ```
 	 */
 	constructor(baseName = "HybridWebCache", options?: Partial<Options>) {
 		this.baseName = baseName;
@@ -211,7 +215,7 @@ export class HybridWebCache {
 	 *
 	 * @example
 	 *
-	 * ```js
+	 * ```ts
 	 * const cache = new HybridWebCache("CacheDB", {storage: StorageEngine.IndexedDB});
 	 * await cache.init();
 	 * ```
@@ -238,7 +242,7 @@ export class HybridWebCache {
 	 * @example
 	 *
 	 * Change the value at `color.name` to `sapphire`.
-	 * ```js
+	 * ```ts
 	 * // Given:
 	 * {
 	 * 	"color": {
@@ -255,13 +259,13 @@ export class HybridWebCache {
 	 * @example
 	 *
 	 * Set the value of `color.hue` to `bluish`.
-	 * ```js
+	 * ```ts
 	 * keyValues.setSync(['color', 'hue'], 'bluish);
 	 * ```
 	 * @example
 	 *
 	 * Change the value of `color.code`.
-	 * ```js
+	 * ```ts
 	 * keyValues.setSync('color.code', { rgb: [16, 31, 134], hex: '#101F86' });
 	 * ```
 	 *
@@ -294,7 +298,7 @@ export class HybridWebCache {
 	 * @example
 	 *
 	 * Change the value at `color.name` to `sapphire`.
-	 * ```js
+	 * ```ts
 	 * // Given:
 	 * {
 	 * 	"color": {
@@ -311,13 +315,13 @@ export class HybridWebCache {
 	 * @example
 	 *
 	 * Set the value of `color.hue` to `bluish`.
-	 * ```js
+	 * ```ts
 	 * keyValues.setSync(['color', 'hue'], 'bluish);
 	 * ```
 	 * @example
 	 *
 	 * Change the value of `color.code`.
-	 * ```js
+	 * ```ts
 	 * keyValues.setSync('color.code', { rgb: [16, 31, 134], hex: '#101F86' });
 	 * ```
 	 *
@@ -356,7 +360,7 @@ export class HybridWebCache {
 	 * @example
 	 *
 	 * Get the value at `color.name`.
-	 * ```js
+	 * ```ts
 	 * // Given:
 	 * {
 	 * 	"color": {
@@ -374,23 +378,21 @@ export class HybridWebCache {
 	 * @example
 	 *
 	 * Get the value at `color.code.hex`.
-	 * ```js
+	 * ```ts
 	 * const hex = await keyValues.get('color.color.hex');
 	 * // => "#003BE6"
 	 * ```
 	 * @example
 	 *
 	 * Get the value at `color.hue`.
-	 * ```js
-	 * const h = 'hue';
-	 * const value = await keyValues.get(['color', h]);
+	 * ```ts
+	 * const value = await keyValues.get(['color', 'hue']);
 	 * // => undefined
 	 * ```
 	 * @example
 	 *
 	 * Get the value at `color.code.rgb[1]`.
-	 * ```js
-	 * const h = 'hue';
+	 * ```ts
 	 * const value = await keyValues.get('color.code.rgb[1]');
 	 * // => 179
 	 * ```
@@ -446,7 +448,7 @@ export class HybridWebCache {
 	 * @example
 	 *
 	 * Get the value at `color.name`.
-	 * ```js
+	 * ```ts
 	 * // Given:
 	 * {
 	 * 	"color": {
@@ -464,23 +466,21 @@ export class HybridWebCache {
 	 * @example
 	 *
 	 * Get the value at `color.code.hex`.
-	 * ```js
+	 * ```ts
 	 * const hex = keyValues.getSync('color.color.hex');
 	 * // => "#003BE6"
 	 * ```
 	 * @example
 	 *
 	 * Get the value at `color.hue`.
-	 * ```js
-	 * const h = 'hue';
-	 * const value = keyValues.getSync(['color', h]);
+	 * ```ts
+	 * const value = keyValues.getSync(['color', 'hue']);
 	 * // => undefined
 	 * ```
 	 * @example
 	 *
 	 * Get the value at `color.code.rgb[1]`.
-	 * ```js
-	 * const h = 'hue';
+	 * ```ts
 	 * const value = keyValues.getSync('color.code.rgb[1]');
 	 * // => 179
 	 * ```
@@ -529,6 +529,8 @@ export class HybridWebCache {
 	 * @returns A map of key-value pairs, where each value is an object containing the value,
 	 *          expiration time, and expiration status. If no values are found or if all values
 	 *          are expired and removed, `null` is returned.
+	 *
+	 * @category Get Methods
 	 */
 	async getAll<T extends ValueType>(removeExpired: boolean = this.options.removeExpired): Promise<Map<string, DataGetModel<T>> | null> {
 		const allItems = await this.storageBase.getAll();
@@ -572,6 +574,8 @@ export class HybridWebCache {
 	 * @returns A map of key-value pairs, where each value is an object containing the value,
 	 *          expiration time, and expiration status. If no values are found or if all values
 	 *          are expired and removed, `null` is returned.
+	 *
+	 * @category Get Methods
 	 */
 	getAllSync<T extends ValueType>(removeExpired: boolean = this.options.removeExpired): Map<string, DataGetModel<T>> | null {
 		const allItems = this.storageBase.getAllSync();
@@ -613,6 +617,8 @@ export class HybridWebCache {
 	 *                        Defaults to the instance's configured setting.
 	 * @returns A promise that resolves to a JSON object containing all key-value pairs.
 	 *          If no items are found or all items are expired and removed, `null` is returned.
+	 *
+	 * @category Get Methods
 	 */
 	async getJson(removeExpired: boolean = this.options.removeExpired): Promise<Record<string, ValueType> | null> {
 		const allValues: Record<string, ValueType> = {};
@@ -641,6 +647,8 @@ export class HybridWebCache {
 	 *                        Defaults to the instance's configured setting.
 	 * @returns A JSON object containing all key-value pairs. If no items are found or all
 	 *          items are expired and removed, `null` is returned.
+	 *
+	 * @category Get Methods
 	 */
 	getJsonSync(removeExpired: boolean = this.options.removeExpired): Record<string, ValueType> | null {
 		const allValues: Record<string, ValueType> = {};
@@ -669,7 +677,7 @@ export class HybridWebCache {
 	 * @example
 	 *
 	 * Check if the value at `color.name` exists.
-	 * ```js
+	 * ```ts
 	 * // Given:
 	 * {
 	 * 	"color": {
@@ -687,14 +695,14 @@ export class HybridWebCache {
 	 * @example
 	 *
 	 * Check if the value at `color.hue` exists.
-	 * ```js
+	 * ```ts
 	 * const exists = await keyValues.has(['color', 'hue']);
 	 * // => false
 	 * ```
 	 *  @example
 	 *
 	 * Check if the value at `color.code.rgb[1]` exists.
-	 * ```js
+	 * ```ts
 	 * const exists = await keyValues.has(color.code.rgb[1]);
 	 * // => true
 	 * ```
@@ -726,7 +734,7 @@ export class HybridWebCache {
 	 * @example
 	 *
 	 * Check if the value at `color.name` exists.
-	 * ```js
+	 * ```ts
 	 * // Given:
 	 * {
 	 * 	"color": {
@@ -744,14 +752,14 @@ export class HybridWebCache {
 	 * @example
 	 *
 	 * Check if the value at `color.hue` exists.
-	 * ```js
+	 * ```ts
 	 * const exists = keyValues.hasSync(['color', 'hue']);
 	 * // => false
 	 * ```
 	 * @example
 	 *
 	 * Check if the value at `color.code.rgb[1]` exists.
-	 * ```js
+	 * ```ts
 	 * const exists = keyValues.hasSync(color.code.rgb[1]);
 	 * // => true
 	 * ```
@@ -784,7 +792,7 @@ export class HybridWebCache {
 	 * @example
 	 *
 	 * Unsets all key values.
-	 * ```js
+	 * ```ts
 	 * await keyValues.unset();
 	 * await keyValues.getAll();
 	 * // => undefined
@@ -804,7 +812,7 @@ export class HybridWebCache {
 	 * @example
 	 *
 	 * Unset the property `color.name`.
-	 * ```js
+	 * ```ts
 	 * // Given:
 	 * {
 	 * 	"color": {
@@ -823,7 +831,7 @@ export class HybridWebCache {
 	 * @example
 	 *
 	 * Unset the property `color.code.rgba[1]`.
-	 * ```js
+	 * ```ts
 	 * await keyValues.unset('color.code.rgba[1]');
 	 * await keyValues.get('color.code.rgb');
 	 * // => [0, null, 230]
@@ -865,7 +873,7 @@ export class HybridWebCache {
 	 * @example
 	 *
 	 * Unsets all key values.
-	 * ```js
+	 * ```ts
 	 * keyValues.unsetSync();
 	 * ```
 	 *
@@ -882,7 +890,7 @@ export class HybridWebCache {
 	 * @example
 	 *
 	 * Unset the property `color.name`.
-	 * ```js
+	 * ```ts
 	 * // Given:
 	 * {
 	 * 	"color": {
@@ -901,7 +909,7 @@ export class HybridWebCache {
 	 * @example
 	 *
 	 * Unset the property `color.code.rgba[1]`.
-	 * ```js
+	 * ```ts
 	 * keyValues.unsetSync('color.code.rgba[1]');
 	 * keyValues.getSync('color.code.rgb');
 	 * // => [0, null, 230]
@@ -1018,10 +1026,23 @@ export class HybridWebCache {
 	/**
 	 * Provides information about the current cache.
 	 *
-	 * @returns An object with the following properties:
-	 *          - `dataBase`: The name of the database used by the cache.
-	 *          - `size`: The total number of bytes used by the cache in the storage.
-	 *          - `options`: The options used to create the cache, including the TTL in milliseconds.
+	 * @returns An object containing:
+	 *  - `dataBase`: The name of the database used by the cache.
+	 *  - `size`: The calculated storage size in bytes represented as a string.
+	 *  - `options`: The current cache options including TTL converted to milliseconds.
+	 *
+	 * ```ts
+	 * {
+	 * 	dataBase: 'myAppCache',
+	 * 	size: 'XXb', // e.g., '120b'
+	 * 	options: {
+	 * 		ttl: 300000, // 5 minutes in ms
+	 * 		removeExpired: true,
+	 * 		storage: 2 // StorageEngine.IndexedDB
+	 * 	}
+	 * }
+	 * ```
+	 *
 	 * @category Auxiliary Methods
 	 */
 	get info(): { dataBase: string; size: string; options: Options } {

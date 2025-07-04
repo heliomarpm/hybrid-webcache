@@ -1,5 +1,5 @@
-import type { DataModel, StorageBase, ValueType } from "../models";
-import { StorageEngine } from "../models";
+import type { DataModel, StorageBase, ValueType } from "../types";
+import { StorageEngine } from "../types";
 
 /** @ignore */
 export class IndexedDBStrategy implements StorageBase {

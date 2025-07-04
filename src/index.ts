@@ -1,4 +1,2 @@
-import { HybridWebCache, StorageEngine } from "./core";
-
-export { HybridWebCache, StorageEngine };
-export type { DataGetModel } from "./core/models";
+export * from "./core/HybridWebCache";
+export * from "./core/types";

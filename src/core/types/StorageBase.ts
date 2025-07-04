@@ -1,5 +1,6 @@
 import type { DataModel, StorageEngine, ValueType } from "./types";
 
+/** @ignore */
 export interface StorageBase {
 	init(): Promise<void>;
 

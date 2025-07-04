@@ -1,5 +1,4 @@
-import type { KeyPath, TTL } from "../models";
-
+import type { KeyPath, TTL } from "../types";
 
 /**
  * Class Helper
