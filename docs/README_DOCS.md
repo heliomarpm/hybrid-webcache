@@ -1,26 +1,7 @@
 <div id="top" align="center">
 <h1>
-  <img src="./logo.png" alt="Hybrid WebCache" width="128" />
-  <br>Hybrid WebCache <a href="https://navto.me/heliomarpm" target="_blank"><img src="https://navto.me/assets/navigatetome-brand.png" width="32"/></a>
-
-  [![DeepScan grade][url-deepscan-badge]][url-deepscan]
-  [![CodeFactor][url-codefactor-badge]][url-codefactor]
-  [![Test][url-test-badge]][url-test]
-  [![Coverage][url-coverage-badge]][url-coverage-report]
-
-  [![NPM version][url-npm-badge]][url-npm]
-  [![Downloads][url-downloads-badge]][url-downloads]
-
+  <br>Hybrid WebCache<a href="https://navto.me/heliomarpm" target="_blank"><img src="https://navto.me/assets/navigatetome-brand.png" width="32"/></a>
 </h1>
-
-<div class="badges">
-
-  [![PayPal][url-paypal-badge]][url-paypal]
-  [![Ko-fi][url-kofi-badge]][url-kofi]
-  [![Liberapay][url-liberapay-badge]][url-liberapay]
-  [![GitHub Sponsors][url-github-sponsors-badge]][url-github-sponsors]
-  
-</div>
 </div>
 
 ## 📚 Summary
@@ -204,8 +185,6 @@ console.log(cacheInfo);
 ---
 ## 📖 API Reference
 
-See the [API documentation](https://heliomarpm.github.io/hybrid-webcache) for a complete list of available functions and their signatures.
-
 ### Methods
 
 | Method | Description |
@@ -307,8 +286,8 @@ We welcome contributions! Whether it's reporting a bug, suggesting a new feature
 
 Please make sure to read before making a pull request:
 
-- [Code of Conduct](docs/CODE_OF_CONDUCT.md)
-- [Contributing Guide](docs/CONTRIBUTING.md)
+- [Code of Conduct](./CODE_OF_CONDUCT.md)
+- [Contributing Guide](./CONTRIBUTING.md)
 
 Thank you to all the people who already contributed to project!
 
@@ -342,7 +321,7 @@ If you appreciate that, please consider donating to the Developer via GitHub Spo
 
 ## 📝 License
 
-[MIT © Heliomar P. Marques](LICENSE) <a href="#top">🔝</a>
+[MIT © Heliomar P. Marques](./LICENSE.md) <a href="#top">🔝</a>
 
 
 ----
@@ -356,27 +335,3 @@ If you appreciate that, please consider donating to the Developer via GitHub Spo
 [url-liberapay-badge]: https://img.shields.io/badge/liberapay-1C1E26?style=for-the-badge&labelColor=1C1E26&color=f6c915
 [url-liberapay]: https://liberapay.com/heliomarpm
 
-<!-- GitHub Actions badges -->
-[url-codeql-badge]: https://github.com/heliomarpm/hybrid-webcache/actions/workflows/codeql.yml/badge.svg 
-[url-codeql]: https://github.com/heliomarpm/hybrid-webcache/security/code-scanning
-[url-test-badge]: https://github.com/heliomarpm/hybrid-webcache/actions/workflows/0.test.yml/badge.svg
-[url-test]: https://github.com/heliomarpm/hybrid-webcache/actions/workflows/0.test.yml
-[url-coverage-badge2]: https://img.shields.io/badge/coverage-dynamic.svg?label=coverage&color=informational&style=flat&logo=jest&query=$.coverage&url=https://heliomarpm.github.io/hybrid-webcache/coverage-badge.json
-[url-coverage-badge]: https://img.shields.io/endpoint?url=https://heliomarpm.github.io/hybrid-webcache/coverage/coverage-badge.json
-[url-coverage-report]: https://heliomarpm.github.io/hybrid-webcache/coverage
-
-<!-- https://img.shields.io/endpoint?url=https://heliomarpm.github.io/hybrid-webcache/coverage-badge.json&label=coverage&suffix=%25 -->
-[url-release-badge]: https://github.com/heliomarpm/hybrid-webcache/actions/workflows/3.release.yml/badge.svg
-[url-release]: https://github.com/heliomarpm/hybrid-webcache/actions/workflows/3.release.yml
-[url-publish-badge]: https://github.com/heliomarpm/hybrid-webcache/actions/workflows/4.publish-npm.yml/badge.svg 
-[url-publish]: https://github.com/heliomarpm/hybrid-webcache/actions/workflows/4.publish-npm.yml
-
-<!-- other badges -->
-[url-npm-badge]: https://img.shields.io/npm/v/@heliomarpm/hybrid-webcache.svg
-[url-npm]: https://www.npmjs.com/package/@heliomarpm/hybrid-webcache
-[url-downloads-badge]: https://img.shields.io/npm/dm/@heliomarpm/hybrid-webcache.svg
-[url-downloads]: http://badge.fury.io/js/@heliomarpm/hybrid-webcache.svg
-[url-deepscan-badge]: https://deepscan.io/api/teams/19612/projects/28422/branches/916358/badge/grade.svg
-[url-deepscan]: https://deepscan.io/dashboard#view=project&tid=19612&pid=28422&bid=916358
-[url-codefactor-badge]: https://www.codefactor.io/repository/github/heliomarpm/hybrid-webcache/badge
-[url-codefactor]: https://www.codefactor.io/repository/github/heliomarpm/hybrid-webcache
