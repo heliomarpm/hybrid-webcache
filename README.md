@@ -15,10 +15,10 @@
 
 <div class="badges">
 
+  [![GitHub Sponsors][url-github-sponsors-badge]][url-github-sponsors]
   [![PayPal][url-paypal-badge]][url-paypal]
   [![Ko-fi][url-kofi-badge]][url-kofi]
   [![Liberapay][url-liberapay-badge]][url-liberapay]
-  [![GitHub Sponsors][url-github-sponsors-badge]][url-github-sponsors]
   
 </div>
 </div>
