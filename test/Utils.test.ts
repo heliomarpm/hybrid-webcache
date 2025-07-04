@@ -1,7 +1,5 @@
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { Utils } from "../src/core/utils";
-import FDBFactory from "fake-indexeddb/lib/FDBFactory";
-
 
 describe("Utils", () => {
 	describe('getKey', () => {
