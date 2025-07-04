@@ -254,19 +254,22 @@ export class HybridWebCache {
 	 *	}
 	 * }
 	 *
-	 * cache.setSync('color.name', 'sapphire');
+	 * const cache = new HybridWebCache();
+	 * await cache.set('color.name', 'sapphire');
 	 * ```
 	 * @example
 	 *
 	 * Set the value of `color.hue` to `bluish`.
 	 * ```ts
-	 * cache.setSync(['color', 'hue'], 'bluish);
+	 * const cache = new HybridWebCache();
+	 * await cache.set(['color', 'hue'], 'bluish);
 	 * ```
 	 * @example
 	 *
 	 * Change the value of `color.code`.
 	 * ```ts
-	 * cache.setSync('color.code', { rgb: [16, 31, 134], hex: '#101F86' });
+	 * const cache = new HybridWebCache();
+	 * await cache.set('color.code', { rgb: [16, 31, 134], hex: '#101F86' });
 	 * ```
 	 *
 	 * @category Set Methods
@@ -309,7 +312,6 @@ export class HybridWebCache {
 	 *		}
 	 *	}
 	 * }
-	 *
 	 * cache.setSync('color.name', 'sapphire');
 	 * ```
 	 * @example
@@ -371,7 +373,7 @@ export class HybridWebCache {
 	 *		}
 	 *	}
 	 * }
-	 *
+	 * const cache = new HybridWebCache();
 	 * const value = await cache.get('color.name');
 	 * // => "cerulean"
 	 * ```
