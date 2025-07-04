@@ -9,8 +9,7 @@ jobs:
   check_code_changes:
     runs-on: ubuntu-latest
     outputs:
-      has_code_changes: ${{ steps.check_files.outputs.has_changes }}
-      skip_publish: true  # ⚠️ Publicação desativada. Altere para false para habilitar a publicação
+      has_code_changes: ${{ steps.check_files.outputs.has_code_changes }}
 
     steps:
       - name: Checkout
@@ -48,7 +47,7 @@ jobs:
 
   publish-npm:
     needs: check_code_changes
-    if: needs.check_code_changes.outputs.has_code_changes == 'true' && needs.check_code_changes.outputs.skip_publish != 'true'
+    if: needs.check_code_changes.outputs.has_code_changes == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -83,7 +82,7 @@ jobs:
 
   publish-gpr:
     needs: check_code_changes
-    if: needs.check_code_changes.outputs.has_code_changes == 'true' && needs.check_code_changes.outputs.skip_publish != 'true'
+    if: needs.check_code_changes.outputs.has_code_changes == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: read
