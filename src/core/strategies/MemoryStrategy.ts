@@ -1,6 +1,7 @@
 import type { DataModel, StorageBase, ValueType } from "../models";
 import { StorageEngine } from "../models";
 
+/** @ignore */
 export class MemoryStrategy implements StorageBase {
 	private storage: Map<string, DataModel<ValueType>> = new Map();
 

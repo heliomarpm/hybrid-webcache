@@ -1,36 +1,182 @@
 import { get as _get, set as _set, unset as _unset } from "lodash";
 
-import type { DataGetModel, DataModel, KeyPath, KeyValues, Options, StorageBase, TTL, ValueType } from "./models";
+import type { DataGetModel, DataModel, KeyPath, RecordType, Options, StorageBase, TTL, ValueType } from "./models";
 import { StorageEngine } from "./models";
 import { StorageFactory } from "./StorageFactory";
 import { Utils } from "./utils";
 
+/**
+ * @internal
+ */
 const defaultOptions: Options = {
 	ttl: { seconds: 0, minutes: 0, hours: 1, days: 0 },
 	removeExpired: true,
 	storage: StorageEngine.Auto,
 };
 
+
+/**
+ * Represents a hybrid web cache that supports both asynchronous and synchronous
+ * operations for storing, retrieving, and managing key-value pairs with optional
+ * time-to-live (TTL) settings.
+ *
+ * The cache can automatically remove expired entries
+ * and supports various storage engines.
+ *
+ * Provides methods for setting, getting,
+ * checking existence, and unsetting values, as well as resetting the cache with
+ * new data. Includes utility functions for converting TTL and calculating storage
+ * size.
+ * @author Heliomar Marques
+ * @example
+ *
+ * Basic Usage with Default Options (storage: Auto, ttl: 1 hour)
+ * ```ts
+ * import { HybridWebCache, StorageEngine } from 'hybrid-webcache';
+ *
+ * const cache = new HybridWebCache();
+ *
+ * await cache.set('sessionToken', 'abc123');
+ * const tokenData = await cache.get<string>('sessionToken');
+ * console.log(`Token: ${tokenData?.value}`); // Output: Token: abc123
+ * console.log(`Is Expired: ${tokenData?.isExpired}`); // Output: Is Expired: false
+ * ```
+ * @example
+ * Creating an instance with custom options (e.g., IndexedDB, 10-minute TTL)
+ * ```ts
+ * import { HybridWebCache, StorageEngine } from 'hybrid-webcache';
+ *
+ * // Note: For IndexedDB, remember to call .init() if you plan to use synchronous methods
+ * const indexedDBCache = new HybridWebCache('myAppCache', {
+ *   storage: StorageEngine.IndexedDB,
+ *   ttl: { minutes: 10 },
+ *   removeExpired: true,
+ * });
+ *
+ * await indexedDBCache.init(); // Initialize IndexedDB to load memory cache for sync operations
+ * //Setting and Getting Nested Data
+ * await indexedDBCache.set('user.profile.firstName', 'John', { hours: 1 });
+ * indexedDBCache.setSync('user.profile.lastName', 'Doe'); // Uses instance's default TTL (10 minutes)
+ * indexedDBCache.setSync(['user', 'profile', 'age'], 30); // Array KeyPath
+ *
+ * const userData = await indexedDBCache.get('user.profile');
+ * console.log(userData?.value); // Output: { firstName: 'John', lastName: 'Doe', age: 30 }
+ * const firstNameData = indexedDBCache.getSync('user.profile.firstName');
+ * console.log(firstNameData?.value); // Output: John
+ *
+ * // Checking for Key Existence
+ * const hasUser = await indexedDBCache.has('user.profile.firstName');
+ * console.log(`Has user first name: ${hasUser}`); // Output: Has user first name: true
+ *
+ * const hasNonExistentKey = indexedDBCache.hasSync('non.existent.key');
+ * console.log(`Has non-existent key: ${hasNonExistentKey}`); // Output: Has non-existent key: false
+ *
+ * // Unsetting Data (Partial and Full)
+ * const complexObject = {
+ *   theme: 'dark',
+ *   settings: {
+ *     language: 'en-US',
+ *     notifications: { email: true, sms: false }
+ *   }
+ * };
+ * await indexedDBCache.set('appConfig', complexObject);
+ *
+ * // Unset a nested property
+ * await indexedDBCache.unset('appConfig.settings.notifications.sms');
+ * const updatedAppConfig = await indexedDBCache.get('appConfig');
+ * console.log(updatedAppConfig?.value);
+ * // Output: { theme: 'dark', settings: { language: 'en-US', notifications: { email: true } } }
+ *
+ * // Unset an array element (sets to null)
+ * indexedDBCache.unsetSync('appConfig.items[1]');
+ * const updatedItems = indexedDBCache.getSync('appConfig.items');
+ * console.log(updatedItems?.value); // Output: ['apple', null, 'orange']
+ *
+ * // Unset the entire 'appConfig' key
+ * await indexedDBCache.unset('appConfig');
+ * const appConfigAfterUnset = await indexedDBCache.get('appConfig');
+ * console.log(appConfigAfterUnset); // Output: undefined
+ *
+ * // Retrieving All Data
+ * await indexedDBCache.set('product1', { id: 1, name: 'Laptop' });
+ * await indexedDBCache.set('product2', { id: 2, name: 'Mouse' });
+ *
+ * const allItemsMap = await indexedDBCache.getAll();
+ * console.log(allItemsMap);
+ * /* Output:
+ * Map(2) {
+ *   'product1' => { value: { id: 1, name: 'Laptop' }, expiresAt: ..., isExpired: false },
+ *   'product2' => { value: { id: 2, name: 'Mouse' }, expiresAt: ..., isExpired: false }
+ * }
+ * *\/
+ *
+ * const allItemsJson = indexedDBCache.getJsonSync();
+ * console.log(allItemsJson);
+ * /* Output:
+ * {  product1: { id: 1, name: 'Laptop' },
+ *    product2: { id: 2, name: 'Mouse' }
+ * } *\/
+ *
+ * // Resetting the Cache
+ * await indexedDBCache.resetWith({
+ *   user: { id: 'user123', status: 'active' },
+ *   app: { version: '1.0.0' }
+ * }, { minutes: 5 }); // New TTL for reset
+ *
+ * const resetData = await indexedDBCache.getJson();
+ * console.log(resetData);
+ * /* Output:
+ * {
+ *   user: { id: 'user123', status: 'active' },
+ *   app: { version: '1.0.0' }
+ * } *\/
+ *
+ * // Getting Cache Info
+ * const cacheInfo = indexedDBCache.info;
+ * console.log(cacheInfo);
+ * /* Output:
+ * {
+ *   dataBase: 'myAppCache',
+ *   size: 'XXb', // e.g., '120b'
+ *   options: {
+ *     ttl: 300000, // 5 minutes in ms
+ *     removeExpired: true,
+ *     storage: 2 // StorageEngine.IndexedDB
+ *   }
+ * } *\/
+ * ```
+ *
+ * @category Core
+ */
 export class HybridWebCache {
+	/**
+	 * Basename
+	 * @private
+	 */
 	private baseName: string;
+
+	/**
+	 * The options for the Cache.
+	 * @type {@link Options}
+	 * @private
+	 */
 	private options: Options;
+
+	/** @ignore */
 	private storageBase: StorageBase;
 
 	/**
-	 * Constructor for  Hybrid WebCache's.
-	 * To reset the cache, use [resetWith()|resetWithSync()].
+	 * Constructor for Hybrid WebCache.
+	 *
+	 * To reset the cache, use [`resetWith()`|`resetWithSync()`].
 	 *
 	 * @param {string} [baseName='HybridWebCache'] - The base name of the cache.
-	 * @param {Partial<Options>} [options] - The options for the cache.
-	 *
-	 * Default Options:
-	 * ```js
-	 * {
+	 * @param {Partial<Options>} options=`{
 	 *  ttl: { seconds: 0, minutes: 0, hours: 1, days: 0 },
 	 * 	removeExpired: true,
 	 * 	storage: StorageType.Auto
-	 * }
-	 * ```
+	 * }`
+	 *
 	 */
 	constructor(baseName = "HybridWebCache", options?: Partial<Options>) {
 		this.baseName = baseName;
@@ -58,9 +204,19 @@ export class HybridWebCache {
 
 	/**
 	 * Initializes the memory cache
+	 *
 	 * This method is only necessary to use the synchronous functions of the IndexedDB strategy.
 	 *
 	 * @return A promise that resolves when the local storage is initialized.
+	 *
+	 * @example
+	 *
+	 * ```js
+	 * const cache = new HybridWebCache("CacheDB", {storage: StorageEngine.IndexedDB});
+	 * await cache.init();
+	 * ```
+	 *
+	 * @category Init Method
 	 */
 	public async init(): Promise<void> {
 		await this.storageBase.init();
@@ -72,12 +228,44 @@ export class HybridWebCache {
 	 * If the keyPath already exists, its value is updated with the provided
 	 * value. If the keyPath does not exist, a new entry is created with the
 	 * provided TTL.
-	 * @category Core
-	 * @template T - The type of the value being stored.
-	 * @param keyPath - The keyPath to be stored.
-	 * @param value - The value to be stored.
-	 * @param ttl - Optional TTL settings for the stored value. Defaults to
+	 *
+	 * @template {@link ValueType} T - The type of the value being stored.
+	 * @param {@link KeyPath} keyPath - The keyPath to be stored.
+	 * @param {@link ValueType} value - The value to be stored.
+	 * @param {@link TTL} ttl - Optional TTL settings for the stored value. Defaults to
 	 *              the instance's configured TTL.
+	 *
+	 * @example
+	 *
+	 * Change the value at `color.name` to `sapphire`.
+	 * ```js
+	 * // Given:
+	 * {
+	 * 	"color": {
+	 *		"name": "cerulean",
+	 *		"code": {
+	 *			"rgb": [0, 179, 230],
+	 *			"hex": "#003BE6"
+	 *		}
+	 *	}
+	 * }
+	 *
+	 * keyValues.setSync('color.name', 'sapphire');
+	 * ```
+	 * @example
+	 *
+	 * Set the value of `color.hue` to `bluish`.
+	 * ```js
+	 * keyValues.setSync(['color', 'hue'], 'bluish);
+	 * ```
+	 * @example
+	 *
+	 * Change the value of `color.code`.
+	 * ```js
+	 * keyValues.setSync('color.code', { rgb: [16, 31, 134], hex: '#101F86' });
+	 * ```
+	 *
+	 * @category Set Methods
 	 */
 	async set<T extends ValueType>(keyPath: KeyPath, value: T, ttl: Partial<TTL> = this.options.ttl): Promise<void> {
 		if (keyPath === undefined || keyPath === null) {
@@ -97,12 +285,43 @@ export class HybridWebCache {
 	/**
 	 * Synchronous version of set.
 	 *
-	 * @category Core
 	 * @template T - The type of the value being stored.
 	 * @param keyPath - The keyPath to be stored.
 	 * @param value - The value to be stored.
 	 * @param ttl - Optional TTL settings for the stored value. Defaults to
 	 *              the instance's configured TTL.
+	 *
+	 * @example
+	 *
+	 * Change the value at `color.name` to `sapphire`.
+	 * ```js
+	 * // Given:
+	 * {
+	 * 	"color": {
+	 *		"name": "cerulean",
+	 *		"code": {
+	 *			"rgb": [0, 179, 230],
+	 *			"hex": "#003BE6"
+	 *		}
+	 *	}
+	 * }
+	 *
+	 * keyValues.setSync('color.name', 'sapphire');
+	 * ```
+	 * @example
+	 *
+	 * Set the value of `color.hue` to `bluish`.
+	 * ```js
+	 * keyValues.setSync(['color', 'hue'], 'bluish);
+	 * ```
+	 * @example
+	 *
+	 * Change the value of `color.code`.
+	 * ```js
+	 * keyValues.setSync('color.code', { rgb: [16, 31, 134], hex: '#101F86' });
+	 * ```
+	 *
+	 * @category Set Methods
 	 */
 	setSync<T extends ValueType>(keyPath: KeyPath, value: T, ttl: Partial<TTL> = this.options.ttl): void {
 		if (keyPath === undefined || keyPath === null) {
@@ -127,13 +346,56 @@ export class HybridWebCache {
 	 * and expiration status. If the value is expired and the `removeExpired` flag is set
 	 * to true, the expired value is removed from storage and `undefined` is returned.
 	 *
-	 * @category Core
 	 * @template T - The type of the value being retrieved.
 	 * @param keyPath - The path to the key whose value should be retrieved.
 	 * @param removeExpired - A flag indicating whether to remove the key if its value
 	 *                        is expired. Defaults to the instance's configured setting.
 	 * @returns A promise that resolves to an object containing the value and its metadata,
 	 *          or `undefined` if the value does not exist or is expired and removed.
+	 *
+	 * @example
+	 *
+	 * Get the value at `color.name`.
+	 * ```js
+	 * // Given:
+	 * {
+	 * 	"color": {
+	 *		"name": "cerulean",
+	 *		"code": {
+	 *			"rgb": [0, 179, 230],
+	 *			"hex": "#003BE6"
+	 *		}
+	 *	}
+	 * }
+	 *
+	 * const value = await keyValues.get('color.name');
+	 * // => "cerulean"
+	 * ```
+	 * @example
+	 *
+	 * Get the value at `color.code.hex`.
+	 * ```js
+	 * const hex = await keyValues.get('color.color.hex');
+	 * // => "#003BE6"
+	 * ```
+	 * @example
+	 *
+	 * Get the value at `color.hue`.
+	 * ```js
+	 * const h = 'hue';
+	 * const value = await keyValues.get(['color', h]);
+	 * // => undefined
+	 * ```
+	 * @example
+	 *
+	 * Get the value at `color.code.rgb[1]`.
+	 * ```js
+	 * const h = 'hue';
+	 * const value = await keyValues.get('color.code.rgb[1]');
+	 * // => 179
+	 * ```
+	 *
+	 * @category Get Methods
 	 */
 	async get<T extends ValueType>(keyPath: KeyPath, removeExpired: boolean = this.options.removeExpired): Promise<DataGetModel<T> | undefined> {
 		if (keyPath === undefined || keyPath === null) {
@@ -175,13 +437,55 @@ export class HybridWebCache {
 	 * and expiration status. If the value is expired and the `removeExpired` flag is set
 	 * to true, the expired value is removed from storage and `undefined` is returned.
 	 *
-	 * @category Core
 	 * @template T - The type of the value being retrieved.
 	 * @param keyPath - The path to the key whose value should be retrieved.
 	 * @param removeExpired - A flag indicating whether to remove the key if its value
 	 *                        is expired. Defaults to the instance's configured setting.
 	 * @returns An object containing the value and its metadata, or `undefined` if the
 	 *          value does not exist or is expired and removed.
+	 * @example
+	 *
+	 * Get the value at `color.name`.
+	 * ```js
+	 * // Given:
+	 * {
+	 * 	"color": {
+	 *		"name": "cerulean",
+	 *		"code": {
+	 *			"rgb": [0, 179, 230],
+	 *			"hex": "#003BE6"
+	 *		}
+	 *	}
+	 * }
+	 *
+	 * const value = keyValues.getSync('color.name');
+	 * // => "cerulean"
+	 * ```
+	 * @example
+	 *
+	 * Get the value at `color.code.hex`.
+	 * ```js
+	 * const hex = keyValues.getSync('color.color.hex');
+	 * // => "#003BE6"
+	 * ```
+	 * @example
+	 *
+	 * Get the value at `color.hue`.
+	 * ```js
+	 * const h = 'hue';
+	 * const value = keyValues.getSync(['color', h]);
+	 * // => undefined
+	 * ```
+	 * @example
+	 *
+	 * Get the value at `color.code.rgb[1]`.
+	 * ```js
+	 * const h = 'hue';
+	 * const value = keyValues.getSync('color.code.rgb[1]');
+	 * // => 179
+	 * ```
+	 *
+	 * @category Get Methods
 	 */
 	getSync<T extends ValueType>(keyPath: KeyPath, removeExpired: boolean = this.options.removeExpired): DataGetModel<T> | undefined {
 		if (keyPath === undefined || keyPath === null) {
@@ -305,7 +609,6 @@ export class HybridWebCache {
 	 * If the `removeExpired` flag is set to true, expired values are removed from storage
 	 * before being included in the result.
 	 *
-	 * @category Core
 	 * @param removeExpired - A flag indicating whether to remove expired values from storage.
 	 *                        Defaults to the instance's configured setting.
 	 * @returns A promise that resolves to a JSON object containing all key-value pairs.
@@ -334,7 +637,6 @@ export class HybridWebCache {
 	 * If the `removeExpired` flag is set to true, expired values are removed from storage
 	 * before being included in the result.
 	 *
-	 * @category Core
 	 * @param removeExpired - A flag indicating whether to remove expired values from storage.
 	 *                        Defaults to the instance's configured setting.
 	 * @returns A JSON object containing all key-value pairs. If no items are found or all
@@ -358,17 +660,46 @@ export class HybridWebCache {
 	}
 
 	/**
-	 * Checks if a value exists for the specified keyPath in the storage engine.
+	 * Checks if the given key path exists.
 	 *
-	 * This method first creates a key from the provided keyPath. If the key matches
-	 * the string representation of the keyPath, it directly checks the storage engine
-	 * for the presence of the key. Otherwise, it retrieves the data for the keyPath
-	 * and determines existence based on the presence of non-null value data.
+	 * _For sync method, use_ [`hasSync()`].
 	 *
-	 * @category Core
-	 * @param keyPath - The path to the key to check for existence.
-	 * @returns A promise that resolves to `true` if the key exists and has a non-null value,
-	 *          or `false` otherwise.
+	 * @param keyPath The key path to check.
+	 * @returns A promise which resolves to `true` if the `keyPath` exists, else `false`.
+	 * @example
+	 *
+	 * Check if the value at `color.name` exists.
+	 * ```js
+	 * // Given:
+	 * {
+	 * 	"color": {
+	 *		"name": "cerulean",
+	 *		"code": {
+	 *			"rgb": [0, 179, 230],
+	 *			"hex": "#003BE6"
+	 *		}
+	 *	}
+	 * }
+	 *
+	 * const exists = await keyValues.has('color.name');
+	 * // => true
+	 * ```
+	 * @example
+	 *
+	 * Check if the value at `color.hue` exists.
+	 * ```js
+	 * const exists = await keyValues.has(['color', 'hue']);
+	 * // => false
+	 * ```
+	 *  @example
+	 *
+	 * Check if the value at `color.code.rgb[1]` exists.
+	 * ```js
+	 * const exists = await keyValues.has(color.code.rgb[1]);
+	 * // => true
+	 * ```
+	 *
+	 * @category Has Methods
 	 */
 	async has(keyPath: KeyPath): Promise<boolean> {
 		if (keyPath === undefined || keyPath === null) {
@@ -386,17 +717,46 @@ export class HybridWebCache {
 	}
 
 	/**
-	 * Synchronously checks if a value exists for the specified keyPath in the storage engine.
+	 * Checks if the given key path exists.
 	 *
-	 * This method creates a key from the provided keyPath. If the key matches
-	 * the string representation of the keyPath, it directly checks the storage engine
-	 * for the presence of the key using `hasSync`. Otherwise, it retrieves the data for
-	 * the keyPath using `getSync` and determines existence based on the presence of non-null
-	 * value data.
+	 * _For async method, use_ [`has()`].
 	 *
-	 * @category Core
-	 * @param keyPath - The path to the key to check for existence.
-	 * @returns `true` if the key exists and has a non-null value, or `false` otherwise.
+	 * @param keyPath The key path to check.
+	 * @returns `true` if the `keyPath` exists, else `false`.
+	 * @example
+	 *
+	 * Check if the value at `color.name` exists.
+	 * ```js
+	 * // Given:
+	 * {
+	 * 	"color": {
+	 *		"name": "cerulean",
+	 *		"code": {
+	 *			"rgb": [0, 179, 230],
+	 *			"hex": "#003BE6"
+	 *		}
+	 *	}
+	 * }
+	 *
+	 * const exists = keyValues.hasSync('color.name');
+	 * // => true
+	 * ```
+	 * @example
+	 *
+	 * Check if the value at `color.hue` exists.
+	 * ```js
+	 * const exists = keyValues.hasSync(['color', 'hue']);
+	 * // => false
+	 * ```
+	 * @example
+	 *
+	 * Check if the value at `color.code.rgb[1]` exists.
+	 * ```js
+	 * const exists = keyValues.hasSync(color.code.rgb[1]);
+	 * // => true
+	 * ```
+	 *
+	 * @category Has Methods
 	 */
 	hasSync(keyPath: KeyPath): boolean {
 		if (keyPath === undefined || keyPath === null) {
@@ -416,57 +776,63 @@ export class HybridWebCache {
 	}
 
 	/**
-	 * Unsets all key values. For sync, use [unsetSync()].
+	 * Unsets all key values.
 	 *
-	 * @category Core
-	 * @returns A promise which resolves when the key values have
-	 * been unset.
+	 * _For sync method, use_ [`unsetSync()`].
+	 *
+	 * @returns A promise which resolves when the key values have been unset.
 	 * @example
 	 *
 	 * Unsets all key values.
-	 *```js
-	 *     await cache.unset();
+	 * ```js
+	 * await keyValues.unset();
+	 * await keyValues.getAll();
+	 * // => undefined
 	 * ```
+	 *
+	 * @category Unset Methods
 	 */
 	unset(): Promise<boolean>;
+
 	/**
-	 * Unsets all key values. For sync, use [unsetSync()].
+	 * Unsets the property at the given key path.
 	 *
-	 * @category Core
-	 * @returns A promise which resolves when the key values have
-	 * been unset.
+	 * _For sync method, use_ [`unsetSync()`].
+	 *
+	 * @param keyPath The key path of the property.
+	 * @returns A promise which resolves when the setting has been unset.
 	 * @example
 	 *
 	 * Unset the property `color.name`.
-	 *```js
-	 *     // Given:
-	 *     //
-	 *     // {
-	 *     //   "color": {
-	 *     //     "name": "cerulean",
-	 *     //     "code": {
-	 *     //       "rgb": [0, 179, 230],
-	 *     //       "hex": "#003BE6"
-	 *     //     }
-	 *     //   }
-	 *     // }
+	 * ```js
+	 * // Given:
+	 * {
+	 * 	"color": {
+	 *		"name": "cerulean",
+	 *		"code": {
+	 *			"rgb": [0, 179, 230],
+	 *			"hex": "#003BE6"
+	 *		}
+	 *	}
+	 * }
 	 *
-	 *     await cache.unset('color.name');
-	 *
-	 *     await cache.get('color.name');
-	 *     // => undefined
-	 *```
+	 * await keyValues.unset('color.name');
+	 * await keyValues.get('color.name');
+	 * // => undefined
+	 * ```
 	 * @example
 	 *
 	 * Unset the property `color.code.rgba[1]`.
-	 *```js
-	 *     await cache.unset('color.code.rgba[1]');
-	 *
-	 *     await cache.get('color.code.rgb').value;
-	 *     // => [0, null, 230]
+	 * ```js
+	 * await keyValues.unset('color.code.rgba[1]');
+	 * await keyValues.get('color.code.rgb');
+	 * // => [0, null, 230]
 	 * ```
+	 *
+	 * @category Unset Methods
 	 */
-	unset(keyPath: KeyPath): Promise<boolean>;
+	async unset(keyPath: KeyPath): Promise<boolean>;
+
 	async unset(keyPath?: KeyPath): Promise<boolean> {
 		if (this.storageBase.length === 0) return false;
 
@@ -492,55 +858,59 @@ export class HybridWebCache {
 	}
 
 	/**
-	 * Unsets all key values. For async, use [unset()].
+	 * Unsets all key values.
 	 *
-	 * @category Core
-	 * @returns `true` if the key was unset, or `false` otherwise.
+	 * _For async method, use_ [`unset()`].
+	 *
 	 * @example
 	 *
 	 * Unsets all key values.
-	 *```js
-	 *     cache.unsetSync();
+	 * ```js
+	 * keyValues.unsetSync();
 	 * ```
+	 *
+	 * @category Unset Methods
 	 */
 	unsetSync(): boolean;
+
 	/**
-	 * Unsets all key values. For sync, use [unsetSync()].
+	 * Unsets the property at the given key path.
 	 *
-	 * @category Core
-	 * @returns `true` if the key was unset, or `false` otherwise.
+	 * _For async method, use_ [`unset()`].
+	 *
+	 * @param keyPath The key path of the property.
 	 * @example
 	 *
 	 * Unset the property `color.name`.
-	 *```js
-	 *     // Given:
-	 *     //
-	 *     // {
-	 *     //   "color": {
-	 *     //     "name": "cerulean",
-	 *     //     "code": {
-	 *     //       "rgb": [0, 179, 230],
-	 *     //       "hex": "#003BE6"
-	 *     //     }
-	 *     //   }
-	 *     // }
+	 * ```js
+	 * // Given:
+	 * {
+	 * 	"color": {
+	 *		"name": "cerulean",
+	 *		"code": {
+	 *			"rgb": [0, 179, 230],
+	 *			"hex": "#003BE6"
+	 *		}
+	 *	}
+	 * }
 	 *
-	 *     cache.unsetSync('color.name');
-	 *
-	 *     cache.getSync('color.name');
-	 *     // => undefined
-	 *```
+	 * keyValues.unsetSync('color.name');
+	 * keyValues.getSync('color.name');
+	 * // => undefined
+	 * ```
 	 * @example
 	 *
 	 * Unset the property `color.code.rgba[1]`.
-	 *```js
-	 *     cache.unsetSync('color.code.rgba[1]');
-	 *
-	 *     cache.getSync('color.code.rgb').value;
-	 *     // => [0, null, 230]
+	 * ```js
+	 * keyValues.unsetSync('color.code.rgba[1]');
+	 * keyValues.getSync('color.code.rgb');
+	 * // => [0, null, 230]
 	 * ```
+	 *
+	 * @category Unset Methods
 	 */
 	unsetSync(keyPath: KeyPath): boolean;
+
 	unsetSync(keyPath?: KeyPath): boolean {
 		if (this.storageBase.length === 0) return false;
 
@@ -579,8 +949,10 @@ export class HybridWebCache {
 	 *              the instance's configured TTL.
 	 * @returns A promise that resolves when all key-value pairs have been
 	 *          set in the storage.
+	 *
+	 * @category Reset Data Methods
 	 */
-	async resetWith<T extends ValueType>(keyValues: KeyValues<T>, ttl: Partial<TTL> = this.options.ttl): Promise<void> {
+	async resetWith<T extends ValueType>(keyValues: RecordType<T>, ttl: Partial<TTL> = this.options.ttl): Promise<void> {
 		await this.storageBase.unset();
 
 		const promises = Object.entries(keyValues).map(([key, value]) => {
@@ -607,8 +979,10 @@ export class HybridWebCache {
 	 * @param keyValues - An object containing key-value pairs to be stored.
 	 * @param ttl - Optional TTL settings for the stored values. Defaults to
 	 *              the instance's configured TTL.
+	 *
+	 * @category Reset Data Methods
 	 */
-	resetWithSync<T extends ValueType>(keyValues: KeyValues<T>, ttl: Partial<TTL> = this.options.ttl): void {
+	resetWithSync<T extends ValueType>(keyValues: RecordType<T>, ttl: Partial<TTL> = this.options.ttl): void {
 		this.storageBase.unsetSync();
 
 		Object.entries(keyValues).forEach(([key, value]) => {
@@ -624,7 +998,8 @@ export class HybridWebCache {
 	/**
 	 * Retrieves the number of items currently stored in the cache.
 	 *
-	 * @returns The count of items in the storage.
+	 * @returns The count of items in the storage.	 *
+	 * @category Auxiliary Methods
 	 */
 	get length(): number {
 		return this.storageBase.length;
@@ -634,6 +1009,7 @@ export class HybridWebCache {
 	 * Retrieves the total number of bytes used by the cache in the storage.
 	 *
 	 * @returns The total bytes used by the cache.
+	 * @category Auxiliary Methods
 	 */
 	get bytes(): number {
 		return this.storageBase.bytes;
@@ -646,6 +1022,7 @@ export class HybridWebCache {
 	 *          - `dataBase`: The name of the database used by the cache.
 	 *          - `size`: The total number of bytes used by the cache in the storage.
 	 *          - `options`: The options used to create the cache, including the TTL in milliseconds.
+	 * @category Auxiliary Methods
 	 */
 	get info(): { dataBase: string; size: string; options: Options } {
 		const size = Utils.calculateStorageSize(this.storageBase.bytes);
@@ -663,6 +1040,7 @@ export class HybridWebCache {
 	 * Returns the type of storage engine used by the cache.
 	 *
 	 * @returns The type of storage engine used by the cache.
+	 * @category Auxiliary Methods
 	 */
 	get storageType(): StorageEngine {
 		return this.storageBase.type;

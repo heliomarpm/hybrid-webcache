@@ -1,5 +1,11 @@
 import type { KeyPath, TTL } from "../models";
 
+
+/**
+ * Class Helper
+ * @internal
+ * @ignore
+ */
 export const Utils = {
 	/**
 	 * Extracts the primary key from a given KeyPath.

@@ -1,6 +1,7 @@
 import type { DataModel, StorageBase, ValueType } from "../models";
 import { StorageEngine } from "../models";
 
+/** @ignore */
 export class SessionStorageStrategy implements StorageBase {
 	private prefixKey: string;
 	private memoryCache: Map<string, DataModel<ValueType>> = new Map();

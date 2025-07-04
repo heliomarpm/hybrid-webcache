@@ -1,6 +1,7 @@
 import type { DataModel, StorageBase, ValueType } from "../models";
 import { StorageEngine } from "../models";
 
+/** @ignore */
 export class IndexedDBStrategy implements StorageBase {
 	private db: IDBDatabase | null = null;
 	private memoryCache: Map<string, DataModel<ValueType>> = new Map();

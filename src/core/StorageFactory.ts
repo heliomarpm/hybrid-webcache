@@ -2,6 +2,9 @@ import { type StorageBase, StorageEngine } from "./models";
 import { IndexedDBStrategy, LocalStorageStrategy, MemoryStrategy, SessionStorageStrategy } from "./strategies";
 import { Utils } from "./utils";
 
+/**
+ * @ignore
+ */
 class StorageFactory {
 	createStorage(type: StorageEngine, baseName: string, storeName?: string): StorageBase {
 		switch (type) {
@@ -32,5 +35,7 @@ class StorageFactory {
 	}
 }
 
+/** @ignore */
 const storageFactory = new StorageFactory();
+/** @ignore */
 export { storageFactory as StorageFactory };
