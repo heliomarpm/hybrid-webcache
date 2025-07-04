@@ -292,10 +292,10 @@ export class HybridWebCache {
 	/**
 	 * Synchronous version of set.
 	 *
-	 * @template T - The type of the value being stored.
-	 * @param keyPath - The keyPath to be stored.
-	 * @param value - The value to be stored.
-	 * @param ttl - Optional TTL settings for the stored value. Defaults to
+	 * @template {@link ValueType} T - The type of the value being stored.
+	 * @param {@link KeyPath} keyPath - The keyPath to be stored.
+	 * @param {@link ValueType} value - The value to be stored.
+	 * @param {@link TTL} ttl - Optional TTL settings for the stored value. Defaults to
 	 *              the instance's configured TTL.
 	 *
 	 * @example
@@ -353,8 +353,8 @@ export class HybridWebCache {
 	 * to true, the expired value is removed from storage and `undefined` is returned.
 	 *
 	 * @template T - The type of the value being retrieved.
-	 * @param keyPath - The path to the key whose value should be retrieved.
-	 * @param removeExpired - A flag indicating whether to remove the key if its value
+	 * @param {@link KeyPath} keyPath - The path to the key whose value should be retrieved.
+	 * @param {boolean} removeExpired - A flag indicating whether to remove the key if its value
 	 *                        is expired. Defaults to the instance's configured setting.
 	 * @returns A promise that resolves to an object containing the value and its metadata,
 	 *          or `undefined` if the value does not exist or is expired and removed.
@@ -442,8 +442,8 @@ export class HybridWebCache {
 	 * to true, the expired value is removed from storage and `undefined` is returned.
 	 *
 	 * @template T - The type of the value being retrieved.
-	 * @param keyPath - The path to the key whose value should be retrieved.
-	 * @param removeExpired - A flag indicating whether to remove the key if its value
+	 * @param {@link KeyPath} keyPath - The path to the key whose value should be retrieved.
+	 * @param {boolean} removeExpired - A flag indicating whether to remove the key if its value
 	 *                        is expired. Defaults to the instance's configured setting.
 	 * @returns An object containing the value and its metadata, or `undefined` if the
 	 *          value does not exist or is expired and removed.
@@ -526,7 +526,7 @@ export class HybridWebCache {
 	 * If the `removeExpired` flag is set to true, expired values are removed from storage
 	 * before being returned.
 	 *
-	 * @param removeExpired - A flag indicating whether to remove expired values from storage.
+	 * @param {boolean} removeExpired - A flag indicating whether to remove expired values from storage.
 	 *                        Defaults to the instance's configured setting.
 	 * @returns A map of key-value pairs, where each value is an object containing the value,
 	 *          expiration time, and expiration status. If no values are found or if all values
@@ -571,7 +571,7 @@ export class HybridWebCache {
 	 * If the `removeExpired` flag is set to true, expired values are removed from storage
 	 * before being returned.
 	 *
-	 * @param removeExpired - A flag indicating whether to remove expired values from storage.
+	 * @param {boolean} removeExpired - A flag indicating whether to remove expired values from storage.
 	 *                        Defaults to the instance's configured setting.
 	 * @returns A map of key-value pairs, where each value is an object containing the value,
 	 *          expiration time, and expiration status. If no values are found or if all values
@@ -615,7 +615,7 @@ export class HybridWebCache {
 	 * If the `removeExpired` flag is set to true, expired values are removed from storage
 	 * before being included in the result.
 	 *
-	 * @param removeExpired - A flag indicating whether to remove expired values from storage.
+	 * @param {boolean} removeExpired - A flag indicating whether to remove expired values from storage.
 	 *                        Defaults to the instance's configured setting.
 	 * @returns A promise that resolves to a JSON object containing all key-value pairs.
 	 *          If no items are found or all items are expired and removed, `null` is returned.
@@ -645,7 +645,7 @@ export class HybridWebCache {
 	 * If the `removeExpired` flag is set to true, expired values are removed from storage
 	 * before being included in the result.
 	 *
-	 * @param removeExpired - A flag indicating whether to remove expired values from storage.
+	 * @param {boolean} removeExpired - A flag indicating whether to remove expired values from storage.
 	 *                        Defaults to the instance's configured setting.
 	 * @returns A JSON object containing all key-value pairs. If no items are found or all
 	 *          items are expired and removed, `null` is returned.
@@ -674,7 +674,7 @@ export class HybridWebCache {
 	 *
 	 * _For sync method, use_ [`hasSync()`].
 	 *
-	 * @param keyPath The key path to check.
+	 * @param {@link KeyPath} keyPath The key path to check.
 	 * @returns A promise which resolves to `true` if the `keyPath` exists, else `false`.
 	 * @example
 	 *
@@ -731,7 +731,7 @@ export class HybridWebCache {
 	 *
 	 * _For async method, use_ [`has()`].
 	 *
-	 * @param keyPath The key path to check.
+	 * @param {@link KeyPath} keyPath The key path to check.
 	 * @returns `true` if the `keyPath` exists, else `false`.
 	 * @example
 	 *
@@ -809,7 +809,7 @@ export class HybridWebCache {
 	 *
 	 * _For sync method, use_ [`unsetSync()`].
 	 *
-	 * @param keyPath The key path of the property.
+	 * @param {@link KeyPath} keyPath The key path of the property.
 	 * @returns A promise which resolves when the setting has been unset.
 	 * @example
 	 *
@@ -888,7 +888,7 @@ export class HybridWebCache {
 	 *
 	 * _For async method, use_ [`unset()`].
 	 *
-	 * @param keyPath The key path of the property.
+	 * @param {@link KeyPath} keyPath The key path of the property.
 	 * @example
 	 *
 	 * Unset the property `color.name`.
@@ -954,8 +954,8 @@ export class HybridWebCache {
 	 * default TTL from the options is used.
 	 *
 	 * @template T - The type of values being stored.
-	 * @param keyValues - An object containing key-value pairs to be stored.
-	 * @param ttl - Optional TTL settings for the stored values. Defaults to
+	 * @param {@link KeyPath}  keyValues - An object containing key-value pairs to be stored.
+	 * @param {@link TTL} ttl - Optional TTL settings for the stored values. Defaults to
 	 *              the instance's configured TTL.
 	 * @returns A promise that resolves when all key-value pairs have been
 	 *          set in the storage.
@@ -986,8 +986,8 @@ export class HybridWebCache {
 	 * default TTL from the options is used.
 	 *
 	 * @template T - The type of values being stored.
-	 * @param keyValues - An object containing key-value pairs to be stored.
-	 * @param ttl - Optional TTL settings for the stored values. Defaults to
+	 * @param {@link KeyPath}  keyValues - An object containing key-value pairs to be stored.
+	 * @param {@link TTL} ttl - Optional TTL settings for the stored values. Defaults to
 	 *              the instance's configured TTL.
 	 *
 	 * @category Reset Data Methods
