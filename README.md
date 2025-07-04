@@ -372,10 +372,10 @@ If you appreciate that, please consider donating to the Developer via GitHub Spo
 [url-publish]: https://github.com/heliomarpm/hybrid-webcache/actions/workflows/4.publish-npm.yml
 
 <!-- other badges -->
-[url-npm-badge]: https://img.shields.io/npm/v/@heliomarpm/hybrid-webcache.svg
-[url-npm]: https://www.npmjs.com/package/@heliomarpm/hybrid-webcache
-[url-downloads-badge]: https://img.shields.io/npm/dm/@heliomarpm/hybrid-webcache.svg
-[url-downloads]: http://badge.fury.io/js/@heliomarpm/hybrid-webcache.svg
+[url-npm-badge]: https://img.shields.io/npm/v/hybrid-webcache.svg
+[url-npm]: https://www.npmjs.com/package/hybrid-webcache
+[url-downloads-badge]: https://img.shields.io/npm/dm/hybrid-webcache.svg
+[url-downloads]: http://badge.fury.io/js/hybrid-webcache.svg
 [url-deepscan-badge]: https://deepscan.io/api/teams/19612/projects/28422/branches/916358/badge/grade.svg
 [url-deepscan]: https://deepscan.io/dashboard#view=project&tid=19612&pid=28422&bid=916358
 [url-codefactor-badge]: https://www.codefactor.io/repository/github/heliomarpm/hybrid-webcache/badge
