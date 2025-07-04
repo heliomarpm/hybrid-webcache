@@ -254,19 +254,19 @@ export class HybridWebCache {
 	 *	}
 	 * }
 	 *
-	 * keyValues.setSync('color.name', 'sapphire');
+	 * cache.setSync('color.name', 'sapphire');
 	 * ```
 	 * @example
 	 *
 	 * Set the value of `color.hue` to `bluish`.
 	 * ```ts
-	 * keyValues.setSync(['color', 'hue'], 'bluish);
+	 * cache.setSync(['color', 'hue'], 'bluish);
 	 * ```
 	 * @example
 	 *
 	 * Change the value of `color.code`.
 	 * ```ts
-	 * keyValues.setSync('color.code', { rgb: [16, 31, 134], hex: '#101F86' });
+	 * cache.setSync('color.code', { rgb: [16, 31, 134], hex: '#101F86' });
 	 * ```
 	 *
 	 * @category Set Methods
@@ -310,19 +310,19 @@ export class HybridWebCache {
 	 *	}
 	 * }
 	 *
-	 * keyValues.setSync('color.name', 'sapphire');
+	 * cache.setSync('color.name', 'sapphire');
 	 * ```
 	 * @example
 	 *
 	 * Set the value of `color.hue` to `bluish`.
 	 * ```ts
-	 * keyValues.setSync(['color', 'hue'], 'bluish);
+	 * cache.setSync(['color', 'hue'], 'bluish);
 	 * ```
 	 * @example
 	 *
 	 * Change the value of `color.code`.
 	 * ```ts
-	 * keyValues.setSync('color.code', { rgb: [16, 31, 134], hex: '#101F86' });
+	 * cache.setSync('color.code', { rgb: [16, 31, 134], hex: '#101F86' });
 	 * ```
 	 *
 	 * @category Set Methods
@@ -372,28 +372,28 @@ export class HybridWebCache {
 	 *	}
 	 * }
 	 *
-	 * const value = await keyValues.get('color.name');
+	 * const value = await cache.get('color.name');
 	 * // => "cerulean"
 	 * ```
 	 * @example
 	 *
 	 * Get the value at `color.code.hex`.
 	 * ```ts
-	 * const hex = await keyValues.get('color.color.hex');
+	 * const hex = await cache.get('color.color.hex');
 	 * // => "#003BE6"
 	 * ```
 	 * @example
 	 *
 	 * Get the value at `color.hue`.
 	 * ```ts
-	 * const value = await keyValues.get(['color', 'hue']);
+	 * const value = await cache.get(['color', 'hue']);
 	 * // => undefined
 	 * ```
 	 * @example
 	 *
 	 * Get the value at `color.code.rgb[1]`.
 	 * ```ts
-	 * const value = await keyValues.get('color.code.rgb[1]');
+	 * const value = await cache.get('color.code.rgb[1]');
 	 * // => 179
 	 * ```
 	 *
@@ -460,28 +460,28 @@ export class HybridWebCache {
 	 *	}
 	 * }
 	 *
-	 * const value = keyValues.getSync('color.name');
+	 * const value = cache.getSync('color.name');
 	 * // => "cerulean"
 	 * ```
 	 * @example
 	 *
 	 * Get the value at `color.code.hex`.
 	 * ```ts
-	 * const hex = keyValues.getSync('color.color.hex');
+	 * const hex = cache.getSync('color.color.hex');
 	 * // => "#003BE6"
 	 * ```
 	 * @example
 	 *
 	 * Get the value at `color.hue`.
 	 * ```ts
-	 * const value = keyValues.getSync(['color', 'hue']);
+	 * const value = cache.getSync(['color', 'hue']);
 	 * // => undefined
 	 * ```
 	 * @example
 	 *
 	 * Get the value at `color.code.rgb[1]`.
 	 * ```ts
-	 * const value = keyValues.getSync('color.code.rgb[1]');
+	 * const value = cache.getSync('color.code.rgb[1]');
 	 * // => 179
 	 * ```
 	 *
@@ -689,21 +689,21 @@ export class HybridWebCache {
 	 *	}
 	 * }
 	 *
-	 * const exists = await keyValues.has('color.name');
+	 * const exists = await cache.has('color.name');
 	 * // => true
 	 * ```
 	 * @example
 	 *
 	 * Check if the value at `color.hue` exists.
 	 * ```ts
-	 * const exists = await keyValues.has(['color', 'hue']);
+	 * const exists = await cache.has(['color', 'hue']);
 	 * // => false
 	 * ```
 	 *  @example
 	 *
 	 * Check if the value at `color.code.rgb[1]` exists.
 	 * ```ts
-	 * const exists = await keyValues.has(color.code.rgb[1]);
+	 * const exists = await cache.has(color.code.rgb[1]);
 	 * // => true
 	 * ```
 	 *
@@ -746,21 +746,21 @@ export class HybridWebCache {
 	 *	}
 	 * }
 	 *
-	 * const exists = keyValues.hasSync('color.name');
+	 * const exists = cache.hasSync('color.name');
 	 * // => true
 	 * ```
 	 * @example
 	 *
 	 * Check if the value at `color.hue` exists.
 	 * ```ts
-	 * const exists = keyValues.hasSync(['color', 'hue']);
+	 * const exists = cache.hasSync(['color', 'hue']);
 	 * // => false
 	 * ```
 	 * @example
 	 *
 	 * Check if the value at `color.code.rgb[1]` exists.
 	 * ```ts
-	 * const exists = keyValues.hasSync(color.code.rgb[1]);
+	 * const exists = cache.hasSync(color.code.rgb[1]);
 	 * // => true
 	 * ```
 	 *
@@ -793,8 +793,8 @@ export class HybridWebCache {
 	 *
 	 * Unsets all key values.
 	 * ```ts
-	 * await keyValues.unset();
-	 * await keyValues.getAll();
+	 * await cache.unset();
+	 * await cache.getAll();
 	 * // => undefined
 	 * ```
 	 *
@@ -824,16 +824,16 @@ export class HybridWebCache {
 	 *	}
 	 * }
 	 *
-	 * await keyValues.unset('color.name');
-	 * await keyValues.get('color.name');
+	 * await cache.unset('color.name');
+	 * await cache.get('color.name');
 	 * // => undefined
 	 * ```
 	 * @example
 	 *
 	 * Unset the property `color.code.rgba[1]`.
 	 * ```ts
-	 * await keyValues.unset('color.code.rgba[1]');
-	 * await keyValues.get('color.code.rgb');
+	 * await cache.unset('color.code.rgba[1]');
+	 * await cache.get('color.code.rgb');
 	 * // => [0, null, 230]
 	 * ```
 	 *
@@ -874,7 +874,7 @@ export class HybridWebCache {
 	 *
 	 * Unsets all key values.
 	 * ```ts
-	 * keyValues.unsetSync();
+	 * cache.unsetSync();
 	 * ```
 	 *
 	 * @category Unset Methods
@@ -902,16 +902,16 @@ export class HybridWebCache {
 	 *	}
 	 * }
 	 *
-	 * keyValues.unsetSync('color.name');
-	 * keyValues.getSync('color.name');
+	 * cache.unsetSync('color.name');
+	 * cache.getSync('color.name');
 	 * // => undefined
 	 * ```
 	 * @example
 	 *
 	 * Unset the property `color.code.rgba[1]`.
 	 * ```ts
-	 * keyValues.unsetSync('color.code.rgba[1]');
-	 * keyValues.getSync('color.code.rgb');
+	 * cache.unsetSync('color.code.rgba[1]');
+	 * cache.getSync('color.code.rgb');
 	 * // => [0, null, 230]
 	 * ```
 	 *
