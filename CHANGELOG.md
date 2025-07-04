@@ -1,3 +1,10 @@
+## [0.3.1](https://github.com/heliomarpm/hybrid-webcache/compare/v0.3.0...v0.3.1) (2025-07-04)
+
+
+### Bug Fixes
+
+* **docs:** ♻️ update examples to use async cache methods ([43cacc6](https://github.com/heliomarpm/hybrid-webcache/commit/43cacc67866f52705ff2920a802c73b60d7bc099))
+
 # [0.3.0](https://github.com/heliomarpm/hybrid-webcache/compare/v0.2.6...v0.3.0) (2025-07-04)
 
 
