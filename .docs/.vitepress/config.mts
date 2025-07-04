@@ -30,10 +30,10 @@ export default defineConfig({
 		],
 		socialLinks: [
 			// icons 'discord' | 'facebook' | 'github'| 'instagram'| 'linkedin'| 'slack'| 'twitter'| 'youtube'
-			{ icon: "github", link: "https://github.com/heliomarpm/cryptoh" },
+			{ icon: "github", link: "https://github.com/heliomarpm/hybrid-webcache" },
 			{
 				icon: "npm",
-				link: "https://www.npmjs.com/package/@heliomarpm/cryptoh",
+				link: "https://www.npmjs.com/package/hybrid-webcache",
 			},
 			{
 				icon: "linkedin",

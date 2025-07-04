@@ -83,9 +83,9 @@ export type KeyPath = string | Array<string>;
  * It can be null, string, number, boolean, object, DictionaryType, or an array of ValueType.
  * @example
  * ```ts
- * await keyValues.set("createdAt", "2023-04-16");
- * await keyValues.set("levels", [1, 2, 3]);
- * await keyValues.set("family, [{ name: "John" }, { name: "Jane" }]);
+ * await cache.set("createdAt", "2023-04-16");
+ * await cache.set("levels", [1, 2, 3]);
+ * await cache.set("family, [{ name: "John" }, { name: "Jane" }]);
  * ```
  *
  * @category Types
@@ -112,7 +112,7 @@ export type DictionaryType = { [key: string]: ValueType };
  * @template T - The type of the values in the record.
  * @example
  * ```ts
- * await keyValues.resetWith({ family: [{ name: "John" }, { name: "Jane" }] });
+ * await cache.resetWith({ family: [{ name: "John" }, { name: "Jane" }] });
  * ```
  * @category Types
  */
