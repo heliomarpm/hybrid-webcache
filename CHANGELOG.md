@@ -1,3 +1,11 @@
+## [0.3.2](https://github.com/heliomarpm/hybrid-webcache/compare/v0.3.1...v0.3.2) (2025-07-04)
+
+
+### Bug Fixes
+
+* **changelog:** correct version comparison range for v0.3.1 release ([01a72c9](https://github.com/heliomarpm/hybrid-webcache/commit/01a72c9c0941e5701755a531fde7a52541cf6df2))
+* remove skip variable on action publish ([ae0d7d5](https://github.com/heliomarpm/hybrid-webcache/commit/ae0d7d500afc8c1be8c00e05b96160d846e31df4))
+
 ## [0.3.1](https://github.com/heliomarpm/hybrid-webcache/compare/v0.2.6...v0.3.1) (2025-07-04)
 
 
