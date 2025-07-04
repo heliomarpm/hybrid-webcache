@@ -61,7 +61,9 @@ export class MemoryStrategy implements StorageBase {
 
 		let totalBytes = 0;
 
-		this.storage.entries().forEach(([key, value]) => {
+		const entries = Array.from(this.storage.entries());
+
+		entries.forEach(([key, value]) => {
 			totalBytes += new TextEncoder().encode(key).length;
 			totalBytes += new TextEncoder().encode(JSON.stringify(value)).length;
 		});
