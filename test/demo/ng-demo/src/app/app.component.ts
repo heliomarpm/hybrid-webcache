@@ -114,7 +114,7 @@ export class AppComponent implements OnInit {
   onUpdate() {
     const employeeId = this.employeeForm.controls['empId'].value;
     const employees = this.employees;
-    const index = employees.findIndex(e => e.empId === employeeId);
+    const index = employees.findIndex((e: EmployeeModel) => e.empId === employeeId);
 
     if (index > -1) {
       const employee = employees[index];
@@ -151,7 +151,7 @@ export class AppComponent implements OnInit {
   onDelete(id: number): void {
     const employees = this.employees; // Get the list of employees
 
-    const index = employees.findIndex(e => e.empId === id); // Find the employee by ID
+    const index = employees.findIndex((e:EmployeeModel) => e.empId === id); // Find the employee by ID
 
     if (index > -1) {
       const isDelete = confirm('Are you sure you want to delete this item?'); // Confirm before deletion
