@@ -76,5 +76,11 @@
       "quoteStyle": "double",
       "semicolons": "always"
     }
+  },
+  "json": {
+    "formatter": {
+      "indentStyle": "space",
+      "indentWidth": 2
+    }
   }
 }
