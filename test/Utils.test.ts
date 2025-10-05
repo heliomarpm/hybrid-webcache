@@ -2,7 +2,7 @@ import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { Utils } from "../src/core/utils";
 
 describe("Utils", () => {
-	describe('getKey', () => {
+	describe("getKey", () => {
 		// getKey extracts first key from array keyPath
 		it("should return first element when given array keyPath", () => {
 			const keyPath = ["firstKey", "secondKey", "thirdKey"];
@@ -32,8 +32,7 @@ describe("Utils", () => {
 		});
 	});
 
-	describe('convertTTLToMilliseconds', () => {
-
+	describe("convertTTLToMilliseconds", () => {
 		// Should return same value when input is a number
 		it("should return same numeric value when input is a number", () => {
 			const input = 5000;
@@ -75,8 +74,7 @@ describe("Utils", () => {
 		});
 	});
 
-	describe('isExpired', () => {
-
+	describe("isExpired", () => {
 		// Returns true when expiresAt is less than current timestamp
 		it("should return true when expiresAt is in the past", () => {
 			const now = Date.now();
@@ -119,8 +117,7 @@ describe("Utils", () => {
 		});
 	});
 
-	describe('isSessionStorageAvailable', () => {
-
+	describe("isSessionStorageAvailable", () => {
 		// Returns true when sessionStorage is available and working correctly
 		it("should return true when sessionStorage is available", () => {
 			const result = Utils.isSessionStorageAvailable();
@@ -144,8 +141,7 @@ describe("Utils", () => {
 		});
 	});
 
-	describe('isLocalStorageAvailable', () => {
-
+	describe("isLocalStorageAvailable", () => {
 		// Returns true when localStorage is available and working correctly
 
 		// Successfully sets and removes test key from localStorage
@@ -165,7 +161,7 @@ describe("Utils", () => {
 		});
 	});
 
-	describe('isIndexedDBAvailable', () => {
+	describe("isIndexedDBAvailable", () => {
 		let originalWindow: any;
 		beforeAll(() => {
 			originalWindow = globalThis.window;
@@ -180,7 +176,7 @@ describe("Utils", () => {
 			expect(result).toBe(false);
 		});
 
-		it('returns true when IndexedDB is available', () => {
+		it("returns true when IndexedDB is available", () => {
 			// Mock window object with IndexedDB
 			Object.defineProperty(window, "indexedDB", {
 				value: window.indexedDB,
@@ -191,7 +187,7 @@ describe("Utils", () => {
 		});
 	});
 
-	describe('calculateStorageSize', () => {
+	describe("calculateStorageSize", () => {
 		// Should convert bytes to appropriate unit (b, kb, mb, gb) with correct value
 		it("should convert bytes to kb, mb and gb with correct values", () => {
 			expect(Utils.calculateStorageSize(1500)).toBe("1.46kb");
