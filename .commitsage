@@ -1,0 +1,21 @@
+{
+  "provider": {
+    "type": "gemini"
+  },
+  "commit": {
+    "commitLanguage": "english",
+    "commitFormat": "conventional",
+    "useCustomInstructions": true,
+    "customInstructions": "Para mensagens de commit, siga estritamente o formato Conventional Commits estritamente para mensagens de commit sempre em Inglês. Use essa estrutura exata:\n\n```<tipo>[escopo opcional]: <gitmoji> <descrição>\n\n[corpo opcional]\n```\n\nExemplos:\n- `feat(auth): :sparkles: adicionar validação de login nova`\n- `fix(api): 🐛 resolver o tempo limite de busca de dados do usuário`\n- `docs: :memo: atualizar passos de instalação no README`\n- `docs: :bookmark: adicionar comentários JSDoc à componente de mídia`\n- `style: :art: formatar código de acordo com as regras de formatação`\n- `refactor: :recycle: reorganizar lógica de detecção de plataforma de vídeo`\n\nOs tipos devem ser um dos seguintes:\n- `feat`: para novas funcionalidades ou recursos\n- `fix`: para correção de bugs\n- `docs`: alterações na documentação, incluindo alterações de arquivos Markdown, documentação de código e comentários JSDoc\n- `style`: alterações que não afetam a funcionalidade do código, como formatação, espaços em branco e etc.\n- `refactor`: alterações na estrutura do código que não corrigem bugs e não adicionam novas funcionalidades\n- `perf`: alterações que melhoram a performance\n- `test`: adição ou correção de testes\n- `build`: alterações que afetam o sistema de compilação, novas dependências ou novas versões\n- `ci`: alterações na configuração do CI, como GitHub Actions, Jenkins e etc.\n- `chore`: outras alterações que não modificam código, testes, documentações e etc.\n- `revert`: reversão de um commit\n\nIMPORTANTE:\n- Sempre inclua um código gitmoji relevante no início da descrição. Associe o gitmoji adequado ao tipo de alteração.\n- Use `docs` (com :bulb: ou :memo:) para adições ou alterações JSDoc, não `refactor`.\n- Limite o título da mensagem (linha inicial) a no máximo **72 caracteres**.\n- Sempre separe o título do corpo com uma linha em branco.\n- Quando houver alterações incompatíveis (breaking changes), use `BREAKING CHANGE` no corpo do commit, e **não no título**.\n\nPara o corpo:\n- Use pontos (`*`) para múltiplos itens\n- Explique sempre de forma sucinta POR QUE a alteração foi necessária\n- Inclua, de forma concisa, o contexto relevante ou detalhes técnicos\n- O corpo deve ser separado do título por uma linha em branco\n\nExemplo completo:\nrefactor(api): ♻️ ajustar endpoint de autenticação\n\n- Remove suporte a autenticação via token no header x-auth\n- Adiciona suporte obrigatório a Bearer Token no Authorization header\n- BREAKING CHANGE: endpoints de autenticação agora exigem Bearer Token\n\nCertifique-se de que a mensagem seja sucinta, profissional e comunique claramente o propósito do commit.",
+    "onlyStagedChanges": true,
+    "autoCommit": false,
+    "autoPush": false,
+    "promptForRefs": false
+  },
+  "gemini": {
+    "model": "gemini-2.5-flash-lite-preview-06-17"
+  },
+  "telemetry": {
+    "enabled": false
+  }
+}

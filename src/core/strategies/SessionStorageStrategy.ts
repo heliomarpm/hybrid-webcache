@@ -82,7 +82,9 @@ export class SessionStorageStrategy implements StorageBase {
 		if (!key) {
 			const keysToRemove: string[] = [];
 			this._forEachStorage((originalKey, _value) => keysToRemove.push(originalKey));
-			keysToRemove.forEach((k) => sessionStorage.removeItem(k));
+			keysToRemove.forEach((k) => {
+				sessionStorage.removeItem(k);
+			});
 			this.memoryCache.clear();
 			result = true;
 		} else {

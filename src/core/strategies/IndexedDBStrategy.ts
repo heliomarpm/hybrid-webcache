@@ -69,6 +69,7 @@ export class IndexedDBStrategy implements StorageBase {
 			};
 
 			request.onerror = (event) => {
+				// biome-ignore lint/suspicious/noConsole: false
 				console.error(`Failed to open IndexedDB: ${(event.target as IDBOpenDBRequest).error}`);
 				this.dbPromise = null; // Clean up the promise after success
 				reject((event.target as IDBOpenDBRequest).error);
@@ -155,7 +156,9 @@ export class IndexedDBStrategy implements StorageBase {
 				} else {
 					// Cursor finished, now update memoryCache and resolve
 					this.memoryCache.clear();
-					result.forEach((value, key) => this.memoryCache.set(key, value));
+					result.forEach((value, key) => {
+						this.memoryCache.set(key, value);
+					});
 					resolve(result.size > 0 ? result : null);
 				}
 			};

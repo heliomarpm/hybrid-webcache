@@ -1,5 +1,9 @@
 {
-  "branches": ["main", { "name": "release", "prerelease": true }, { "name": "develop", "prerelease": false }],
+  "branches": [
+    "main",
+    { "name": "release", "prerelease": true },
+    { "name": "develop", "prerelease": false }
+  ],
   "plugins": [
     [
       "@semantic-release/commit-analyzer",
@@ -25,7 +29,7 @@
     [
       "@semantic-release/git",
       {
-        "assets": ["CHANGELOG.md", "package.json"],
+        "assets": ["CHANGELOG.md", "package.json", "package-lock.json"],
         "message": "chore(release): set `package.json` to ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}",
         "tag": "${version}"
       }

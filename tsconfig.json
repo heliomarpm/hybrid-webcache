@@ -1,21 +1,40 @@
 {
+  /* Visit https://aka.ms/tsconfig to read more about this file */
   "compilerOptions": {
+    /* Segurança e padronização */
     "strict": true,
-    "useDefineForClassFields": true,
     "forceConsistentCasingInFileNames": true,
-    "moduleResolution": "node",
-    "target": "ESNext",
-    "module": "ESNext",
+    "skipLibCheck": true,
+
+    /* Compatibilidade ampla */
+    "target": "es2023",
+    "module": "ESNext", // deixa o bundler escolher a melhor estratégia
+    "moduleResolution": "Node",
+
+    /* APIs disponíveis no código TS */
+    "lib": ["ES2023", "DOM"], // inclui features JS + APIs de navegador
+
+    /* Tipos */
+    "declaration": true, // gera .d.ts
+    "declarationMap": true, // gera mapas dos tipos (útil em IDEs)
+    // "declarationDir": "./dist/types", // separa tipos do código JS
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+
+    /* Recursos extras */
+    "resolveJsonModule": true, // permite importar JSON direto
+    "useDefineForClassFields": true, // padrão moderno de fields em classes
+    // "removeComments": true, // tira comentários no .js final
+    "noEmitOnError": true, // não gera saída se houver erro
+    "sourceMap": true, // desligado em produção
+
+    /* Organização do projeto */
     "outDir": "./dist",
     "rootDir": "./src",
-    "declaration": true,
-    "sourceMap": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
     "paths": {
       "@/*": ["./src/*"]
     }
   },
   "include": ["src/**/*"],
-  "exclude": ["**/*.test.ts", "**/*.spec.ts", "test/**/*"]
+  "exclude": ["test/**/*", "**/*.test.ts", "**/*.spec.ts", "node_modules", "dist", ".*"]
 }

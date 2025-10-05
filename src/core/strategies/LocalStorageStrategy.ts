@@ -127,7 +127,9 @@ export class LocalStorageStrategy implements StorageBase {
 		if (!key) {
 			const keysToRemove: string[] = [];
 			this._forEachStorage((originalKey, _value) => keysToRemove.push(originalKey));
-			keysToRemove.forEach((k) => localStorage.removeItem(k));
+			keysToRemove.forEach((k) => {
+				localStorage.removeItem(k);
+			});
 			this.memoryCache.clear();
 			this.channel.postMessage({ action: "clear", key: undefined, value: undefined });
 			result = true;

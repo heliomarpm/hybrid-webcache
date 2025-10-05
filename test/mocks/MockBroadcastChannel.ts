@@ -7,18 +7,20 @@ export class MockBroadcastChannel {
 	}
 
 	postMessage(data: any) {
-		this.listeners.forEach(listener => listener({ data }));
+		this.listeners.forEach((listener) => {
+			listener({ data });
+		});
 	}
 
 	addEventListener(type: string, listener: (event: { data: any }) => void) {
-		if (type === 'message') {
+		if (type === "message") {
 			this.listeners.push(listener);
 		}
 	}
 
 	removeEventListener(type: string, listener: (event: { data: any }) => void) {
-		if (type === 'message') {
-			this.listeners = this.listeners.filter(l => l !== listener);
+		if (type === "message") {
+			this.listeners = this.listeners.filter((l) => l !== listener);
 		}
 	}
 

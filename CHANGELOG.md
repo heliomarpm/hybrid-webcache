@@ -1,3 +1,10 @@
+## [0.3.3](https://github.com/heliomarpm/hybrid-webcache/compare/v0.3.2...v0.3.3) (2025-07-04)
+
+
+### Bug Fixes
+
+* improve JSDoc parameter type annotations with [@link](https://github.com/link) references ([1a2c77b](https://github.com/heliomarpm/hybrid-webcache/commit/1a2c77bca06045c366efec0f3894843212df10a9))
+
 ## [0.3.2](https://github.com/heliomarpm/hybrid-webcache/compare/v0.3.1...v0.3.2) (2025-07-04)
 
 

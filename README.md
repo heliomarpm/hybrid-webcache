@@ -15,10 +15,10 @@
 
 <div class="badges">
 
+  [![GitHub Sponsors][url-github-sponsors-badge]][url-github-sponsors]
   [![PayPal][url-paypal-badge]][url-paypal]
   [![Ko-fi][url-kofi-badge]][url-kofi]
   [![Liberapay][url-liberapay-badge]][url-liberapay]
-  [![GitHub Sponsors][url-github-sponsors-badge]][url-github-sponsors]
   
 </div>
 </div>
@@ -374,7 +374,7 @@ If you appreciate that, please consider donating to the Developer via GitHub Spo
 <!-- other badges -->
 [url-npm-badge]: https://img.shields.io/npm/v/hybrid-webcache.svg
 [url-npm]: https://www.npmjs.com/package/hybrid-webcache
-[url-downloads-badge]: https://img.shields.io/npm/dm/hybrid-webcache.svg
+[url-downloads-badge]: https://img.shields.io/npm/dy/hybrid-webcache.svg
 [url-downloads]: http://badge.fury.io/js/hybrid-webcache.svg
 [url-deepscan-badge]: https://deepscan.io/api/teams/19612/projects/28422/branches/916358/badge/grade.svg
 [url-deepscan]: https://deepscan.io/dashboard#view=project&tid=19612&pid=28422&bid=916358

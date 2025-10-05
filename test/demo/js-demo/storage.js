@@ -1,5 +1,5 @@
 const HybridWebCache = require('hybrid-webcache');
-const db = new HybridWebCache('NotesApp', { storage: StorageType.IndexedDB});
+const db = new HybridWebCache('NotesApp', { storage: StorageEngine.IndexedDB });
 
 async function addNote(title, content) {
     const id = Date.now().toString();

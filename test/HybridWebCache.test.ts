@@ -1,3 +1,5 @@
+/** biome-ignore-all lint/suspicious/noExplicitAny: false positive */
+/** biome-ignore-all lint/correctness/noUnusedVariables: false positive */
 import FDBFactory from "fake-indexeddb/lib/FDBFactory";
 import { beforeEach, describe, expect, it } from "vitest";
 import { HybridWebCache, StorageEngine } from "../src";
@@ -21,7 +23,6 @@ describe.each(strategies)("HybridWebCache with $name Strategy", ({ type }) => {
 	});
 
 	describe("init", () => {
-
 		it("should resolve without throwing an error", async () => {
 			await expect(cache.init()).resolves.not.toThrow();
 		});
@@ -81,18 +82,18 @@ describe.each(strategies)("HybridWebCache with $name Strategy", ({ type }) => {
 		});
 
 		it("throws an error when keyPath is undefined or null", async () => {
-			await expect(cache.set(undefined as any, null)).rejects.toThrowError("KeyPath cannot be undefined or null.");
-			await expect(cache.set(null as any, null)).rejects.toThrowError("KeyPath cannot be undefined or null.");
+			await expect(cache.set(undefined as unknown as string, null)).rejects.toThrowError("KeyPath cannot be undefined or null.");
+			await expect(cache.set(null as unknown as string, null)).rejects.toThrowError("KeyPath cannot be undefined or null.");
 
-			await expect(cache.get(undefined as any)).rejects.toThrowError("KeyPath cannot be undefined or null.");
-			await expect(cache.get(null as any)).rejects.toThrowError("KeyPath cannot be undefined or null.");
+			await expect(cache.get(undefined as unknown as string)).rejects.toThrowError("KeyPath cannot be undefined or null.");
+			await expect(cache.get(null as unknown as string)).rejects.toThrowError("KeyPath cannot be undefined or null.");
 		});
 		it("throws an error when keyPath is undefined or null using sync method", () => {
-			expect(() => cache.setSync(undefined as any, null)).toThrowError("KeyPath cannot be undefined or null.");
-			expect(() => cache.setSync(null as any, null)).toThrowError("KeyPath cannot be undefined or null.");
+			expect(() => cache.setSync(undefined as unknown as string, null)).toThrowError("KeyPath cannot be undefined or null.");
+			expect(() => cache.setSync(null as unknown as string, null)).toThrowError("KeyPath cannot be undefined or null.");
 
-			expect(() => cache.getSync(undefined as any)).toThrowError("KeyPath cannot be undefined or null.");
-			expect(() => cache.getSync(null as any)).toThrowError("KeyPath cannot be undefined or null.");
+			expect(() => cache.getSync(undefined as unknown as string)).toThrowError("KeyPath cannot be undefined or null.");
+			expect(() => cache.getSync(null as unknown as string)).toThrowError("KeyPath cannot be undefined or null.");
 		});
 
 		it("returns undefined when the key does not exist in storage", async () => {
@@ -332,7 +333,7 @@ describe.each(strategies)("HybridWebCache with $name Strategy", ({ type }) => {
 			await cache.resetWith({ key: "value" });
 			const map = await cache.getAll();
 
-			const item = map!.get("key")!;
+			const item = map?.get("key")!;
 			const { expiresAt, ...resultWithoutExpiresAt } = item;
 
 			expect(new Map([["key", resultWithoutExpiresAt]])).toEqual(new Map([["key", { value: "value", isExpired: false }]]));
@@ -341,7 +342,7 @@ describe.each(strategies)("HybridWebCache with $name Strategy", ({ type }) => {
 			cache.resetWithSync({ key: "value" });
 			const map = cache.getAllSync();
 
-			const item = map!.get("key")!;
+			const item = map?.get("key")!;
 			const { expiresAt, ...resultWithoutExpiresAt } = item;
 
 			expect(new Map([["key", resultWithoutExpiresAt]])).toEqual(new Map([["key", { value: "value", isExpired: false }]]));
@@ -504,7 +505,6 @@ describe.each(strategies)("HybridWebCache with $name Strategy", ({ type }) => {
 	});
 
 	describe("has (Async/Sync)", () => {
-
 		it("throws an error if KeyPath is undefined or null", async () => {
 			await expect(cache.has(undefined as any)).rejects.toThrowError("KeyPath cannot be undefined or null.");
 			await expect(cache.has(null as any)).rejects.toThrowError("KeyPath cannot be undefined or null.");
@@ -636,7 +636,6 @@ describe.each(strategies)("HybridWebCache with $name Strategy", ({ type }) => {
 	});
 
 	describe("resetWith (Async/Sync)", () => {
-
 		it("should reset with single key-value pair", async () => {
 			const keyValues = { foo: "bar" };
 			await cache.resetWith(keyValues);
