@@ -35,8 +35,8 @@
     "crud"
   ],
   "scripts": {
-    "check": "biome check",
-    "lint": "biome lint --write --unsafe",
+    "check": "biome check ./src",
+    "lint": "biome lint ./src --write --unsafe",
     "format": "biome format --write .",
     "test": "vitest --no-watch --reporter=verbose",
     "test:c": "vitest --no-watch --coverage",
@@ -81,8 +81,8 @@
     "vitest": "^3.2.4"
   },
   "lint-staged": {
-    "*.{ts,js,mts,json,jsonc,yml}": [
-      "biome check --write --files-ignore-unknown=true --no-errors-on-unmatched"
+    "./src/*.{ts,js,mts,json,jsonc,yml}": [
+      "biome check --write --files-ignore-unknown=true --no-errors-on-unmatched ./src"
     ]
   },
   "config": {
@@ -95,16 +95,8 @@
       "@commitlint/config-conventional"
     ],
     "rules": {
-      "header-max-length": [
-        1,
-        "always",
-        100
-      ],
-      "body-max-line-length": [
-        1,
-        "always",
-        100
-      ]
+      "header-max-length": [1, "always", 100],
+      "body-max-line-length": [1, "always", 100]
     }
   }
 }
